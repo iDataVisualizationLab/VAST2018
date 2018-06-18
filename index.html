@@ -2,19 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Soil analysis</title>
+    <title>VAST 2018 MC2</title>
     <script src="lib/d3.js"></script>
     <script src="lib/d3-color.v1.min.js"></script>
     <script src="lib/d3-interpolate.v1.min.js"></script>
     <script src="lib/d3-scale-chromatic.v1.min.js"></script>
     <script src="lib/jquery.js"></script>
-    <script src="lib/plotly-latest.min.js"></script>
-    <!--main code-->
+    <script src="lib/plotly.js"></script>
     <link rel="stylesheet" href="css/main.css"/>
+    <!--data processing file-->
+    <script src="js/processdata.js"></script>
 </head>
 <body>
-
-<!--main data processing file-->
+<select id = "locations"></select>
+<select id = "measures"></select>
+<!--supporting the interface-->
 <script src="js/main.js"></script>
 </body>
 </html>
