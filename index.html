@@ -12,11 +12,16 @@
     <link rel="stylesheet" href="css/main.css"/>
     <!--data processing file-->
     <script src="js/processdata.js"></script>
+    <script src="js/main.js"></script>
 </head>
 <body>
 <select id = "locations"></select>
 <select id = "measures"></select>
-<!--supporting the interface-->
-<script src="js/main.js"></script>
+<button onclick="populateComBoBoxes()">Load Boxes</button>
+<button onclick="plotLineGraph()">Plot line graph</button>
+<div id="scatterDiv"></div>
+<button onclick="drawParallelCoordinates()">Parallel Coordinates</button>
+<div id="parallelCoordinatesDiv"></div>
+
 </body>
 </html>

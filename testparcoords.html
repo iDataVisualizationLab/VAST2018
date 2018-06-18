@@ -3,13 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Test parallel coordinates</title>
+    <style>
+        @import "lib/d3.parsets.css";
+    </style>
     <script src="lib/d3.js"></script>
+    <script>
+        var d3version4 = d3;
+        window.d3 = null;
+    </script>
+    <script src="lib/d3.v2.js"></script>
+    <script src="lib/d3.parsets.js"></script>
     <script src="lib/plotly.js"></script>
 </head>
 <body>
 <div id="graphDiv"></div>
 <script>
     Plotly.d3.csv("mc2/Boonsong Lekagul waterways readings.csv", (error, rows)=>{
+        var d3 = d3version4;
         if(error) throw  error;
         function unpack(rows, column){
             return rows.map(row=>row[column]);
@@ -57,15 +67,15 @@
                     tickvals: uniqueLocations.map((d, i) => i),
                     ticktext: uniqueLocations
                 },{
-                    label: 'Sample year',
-                    values: sampleYears,
-                    tickvals: uniqueYears,
-                    ticktext: uniqueYears.map(y=>y+"")
-                },{
                     label: 'Mesure',
                     values: measureColumn.map(measure=>measureToIndex(measure)),
                     tickvals: uniqueMeasures.map((d, i) => i),
                     ticktext: uniqueMeasures
+                },{
+                    label: 'Sample year',
+                    values: sampleYears,
+                    tickvals: uniqueYears,
+                    ticktext: uniqueYears.map(y=>y+"")
                 },{
                     label: 'Log10(value)',
                     values: valueColumn.map(value=>Math.log10(value))
@@ -81,6 +91,16 @@
         Plotly.plot('graphDiv', data, layout);
     });
 
+</script>
+<div id="vis" style="width: 1200px;"></div>
+<script>
+    var chart = d3.parsets().dimensions(["location","measure","sample date"]);
+    var vis = d3.select("#vis").append("svg")
+        .attr("width", chart.width())
+        .attr("height", chart.height());
+    d3.csv("mc2/Boonsong Lekagul waterways readings.csv", (csv)=>{
+        vis.datum(csv).call(chart);
+    });
 </script>
 </body>
 </html>
