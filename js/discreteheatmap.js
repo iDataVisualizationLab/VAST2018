@@ -7,7 +7,7 @@ let plotData = {
 }
 let plotLayout ={
     boxWidth: 5,
-    boxHeight: 3,
+    boxHeight: 1,
     measureLabelWidth: 150,
     title: null,
     colorScales: d3.interpolateRdYlGn
