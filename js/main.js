@@ -1,52 +1,202 @@
-function loadData(){
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv");
+let ALL = 'All';
+
+function loadData() {
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv", dataHandler);
 }
-$(document).ready(()=>{
-    loadData();
+
+$(document).ready(() => {
+    loadData(dataHandler);
 });
-function populateComBoBoxes(){
+
+function dataHandler(){
+    populateComBoBoxes();
+}
+
+function populateComBoBoxes() {
     populateLocations();
     populateMeasures();
 }
-function populateLocations(){
+
+function populateLocations() {
     myDataProcessor.populateComboBox("location", populateComboBoxHandler("locations"));
 }
-function populateMeasures(){
+
+function populateMeasures() {
     myDataProcessor.populateComboBox("measure", populateComboBoxHandler("measures"));
 }
-function populateComboBoxHandler(selectId){
-    return function(options){
+
+function populateComboBoxHandler(selectId) {
+    return function (options) {
         let select = document.getElementById(selectId);
-        options.forEach(opt=>{
-           let el = document.createElement("option");
-           el.value = opt;
-           el.textContent = opt;
-           select.appendChild(el);
+        //Create an option for all
+        options.unshift(ALL);
+        options.forEach(opt => {
+            let el = document.createElement("option");
+            el.value = opt;
+            el.textContent = opt;
+            select.appendChild(el);
         });
     }
 }
-function plotLineGraph(){
+
+function plotLineGraph() {
+
     let location = $("#locations").val();
     let measure = $("#measures").val();
-    myDataProcessor.plotLineGraph(location, measure, plotLineGraphHandler);
+    var locations = [];
+    var measures = [];
+    if (location === ALL) {
+        $("#locations option").each(function () {
+            let location = this.value;
+            if (location != ALL) {
+                locations.push(location);
+            }
+        });
+    } else {
+        locations.push(location);
+    }
+    if (measure === ALL) {
+        $("#measures option").each(function () {
+            let measure = this.value;
+            if (measure != ALL) {
+                measures.push(measure);
+            }
+        });
+    } else {
+        measures.push(measure);
+    }
+    //TODO: change this to style or so.
+    d3.select("#scatterDiv").style("height", 1200);
+    Plotly.purge("scatterDiv");
+    locations.forEach(location => {
+        measures.forEach(measure => {
+            myDataProcessor.plotLineGraph(location, measure, plotLineGraphHandler);
+        });
+    });
 }
-function plotLineGraphHandler(location, measure, x, y){
+function plotLineGraphHandler(location, measure, x, y) {
     let data = [{
         x: x,
         y: y,
-        name: location + "-" + measure
+        name: location + "-" + measure,
+        mode: 'lines+markers'
     }];
     Plotly.plot("scatterDiv", data);
-    if(x.length==0 || y.length == 0){
-        alert("No data to plot");
-    }
 }
-function drawParallelCoordinates(){
+
+function plotBoxPlots(){
+    let location = $("#locations").val();
+    let measure = $("#measures").val();
+    var locations = [];
+    var measures = [];
+    if (location === ALL) {
+        $("#locations option").each(function () {
+            let location = this.value;
+            if (location != ALL) {
+                locations.push(location);
+            }
+        });
+    } else {
+        locations.push(location);
+    }
+    if (measure === ALL) {
+        $("#measures option").each(function () {
+            let measure = this.value;
+            if (measure != ALL) {
+                measures.push(measure);
+            }
+        });
+    } else {
+        measures.push(measure);
+    }
+    //Sort the locations and measures.
+    locations.sort((a, b)=>a.localeCompare(b));
+    measures.sort((a, b)=>a.localeCompare(b));
+    myDataProcessor.plotBoxPlots(locations, measures, plotBoxPlotHandler);
+}
+function plotBoxPlotHandler(columns, yValues){
+    let boxNumber = columns.length;
+    let boxColor  = [];
+    let allColors = d3.range(0, 360, 360/boxNumber);
+    let data = [];
+    //Colors
+    for(var i = 0; i < boxNumber; i++){
+        let result = "hsl("+allColors[i]+",50%,50%)";
+        boxColor.push(result);
+    }
+    //Create traces
+    for(var i=0; i< boxNumber; i++){
+        var result = {
+            y: yValues[i],
+            type: 'box',
+            marker:{
+                color: boxColor[i]
+            },
+            name: columns[i]
+        };
+        data.push(result);
+    }
+    var layout = {
+        xasis: {
+            showgrid: false,
+            zeroline: false,
+            tickangle: 60,
+            showticklabels: false
+        },
+        yaxis: {
+            zeroline: false,
+            gridcolor: 'white'
+        },
+        paper_bgcolor: 'rgb(233, 233, 233)',
+        plot_bgcolor: 'rgb(233, 233, 233)',
+        showlegend: false
+    };
+    Plotly.newPlot('scatterDiv', data, layout);
+}
+
+function drawParallelCoordinates() {
     myDataProcessor.drawParallelCoordinates(drawParallelCoordinateHandler);
 }
-function drawParallelCoordinateHandler(data){
+function drawParallelCoordinateHandler(data) {
     let layout = {
         height: 1600
     }
     Plotly.plot('parallelCoordinatesDiv', data, layout);
+}
+
+
+function plotDiscreteHeatMap() {
+    plotData.locations = myDataProcessor.getAllLocations();
+    plotData.measures = myDataProcessor.getAllMeasures();
+    //Test ordering the measures
+    plotData.measures.sort((a, b)=>a.localeCompare(b));
+    plotData.months = d3.range(0, myDataProcessor.getMonthNumber(), 1);
+    plotData.data = myDataProcessor.getNestedByMeasureLocationMonth();
+    plotData.scales = myDataProcessor.getNestedScales();
+    discreteHeatMapPlotter.plot("discreteHeatMapDiv");
+}
+function plotDiscreteHeatMap1() {
+    let locationData = [
+        {name:"Kohsoom",stream: 1},
+        {name:"Boonsri",stream: 1},
+        {name:"Busarakhan", stream: 1},
+        {name:"Chai", stream: 1},
+        {name:"Kannika",stream: 1},
+        {name:"Achara",stream: 2},
+        {name:"Somchair",stream: 2},
+        {name:"Sakda",stream: 2},
+        {name:"Tansanee",stream: 3},
+        {name:"Decha",stream: 4}];
+    plotData.locations = locationData.map(d=>d.name);
+    plotData.measures = myDataProcessor.getAllMeasures();
+    //Test ordering the measures
+    plotData.measures.sort((a, b)=>a.localeCompare(b));
+    plotData.months = d3.range(0, myDataProcessor.getMonthNumber(), 1);
+    plotData.data = myDataProcessor.getNestedByMeasureLocationMonth();
+    plotData.scales = myDataProcessor.getNestedScales();
+    discreteHeatMapPlotter.plot("discreteHeatMapDiv1");
+}
+function resetZoom(){
+    let graph = d3.select("#discreteHeatMapDiv").select("g.graph");
+    graph.attr("transform", d3.zoomIdentity);
 }

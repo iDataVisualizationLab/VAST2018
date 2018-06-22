@@ -1,0 +1,26 @@
+div.tooltip {
+    position: absolute;
+    text-align: left;
+    width: 150px;
+    height: 50px;
+    padding-left: 5px;
+    font: 8px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 4px;
+    pointer-events: none;
+}
+.measureLabel text{
+    font: 8px sans-serif;
+}
+.measureLabel line{
+    stroke-width: 0.5px;
+    stroke: black;
+}
+.measureRect{
+    fill: rgb(255, 255, 255);
+}
+.measureRect:hover{
+    fill: rgb(233, 233, 233);
+    opacity: 1;
+}

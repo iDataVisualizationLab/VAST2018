@@ -7,8 +7,14 @@
     <script src="lib/d3-color.v1.min.js"></script>
     <script src="lib/d3-interpolate.v1.min.js"></script>
     <script src="lib/d3-scale-chromatic.v1.min.js"></script>
+    <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
     <script src="lib/jquery.js"></script>
     <script src="lib/plotly.js"></script>
+    <script src="lib/generalutils.js"></script>
+    <style>
+        @import "css/discreteheatmap.css";
+    </style>
+    <script src="js/discreteheatmap.js"></script>
     <link rel="stylesheet" href="css/main.css"/>
     <!--data processing file-->
     <script src="js/processdata.js"></script>
@@ -17,11 +23,19 @@
 <body>
 <select id = "locations"></select>
 <select id = "measures"></select>
-<button onclick="populateComBoBoxes()">Load Boxes</button>
 <button onclick="plotLineGraph()">Plot line graph</button>
+<button onclick="plotBoxPlots()">Plot box plots</button>
 <div id="scatterDiv"></div>
 <button onclick="drawParallelCoordinates()">Parallel Coordinates</button>
 <div id="parallelCoordinatesDiv"></div>
-
+<button onclick="plotDiscreteHeatMap()">Heat map</button>
+<button onclick="resetZoom()">Reset zoom</button>
+<button onclick="plotDiscreteHeatMap1()">Heat map1</button>
+<table>
+    <tr>
+        <td><div id="discreteHeatMapDiv"></div></td>
+        <td><div id="discreteHeatMapDiv1"></div></td>
+    </tr>
+</table>
 </body>
 </html>

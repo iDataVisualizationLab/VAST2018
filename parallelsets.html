@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test parallel Sets</title>
+    <style>
+        @import "lib/d3.parsets.css";
+    </style>
+    <script src="lib/d3.v2.js"></script>
+    <script src="lib/d3.parsets.js"></script>
+</head>
+<body>
+<div id="graphDiv"></div>
+<script>
+    var chart = d3.parsets().dimensions(["location","measure","sample date"]);
+    var vis = d3.select("#graphDiv").append("svg")
+        .attr("width", chart.width())
+        .attr("height", chart.height());
+    d3.csv("mc2/Boonsong Lekagul waterways readings.csv", (csv)=>{
+        vis.datum(csv).call(chart);
+    });
+</script>
+</body>
+</html>
