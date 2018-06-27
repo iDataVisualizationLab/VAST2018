@@ -14,7 +14,8 @@ let myDataProcessor = {
                 d[COL_VALUE] = +d[COL_VALUE];
                 return d;
             });
-            myDataProcessor.filterOutliers();
+            myDataProcessor.markOutliers();
+            //myDataProcessor.filterOutliers();
             myDataProcessor.addMonthIndex();
             dataHandler();
 
@@ -36,6 +37,11 @@ let myDataProcessor = {
             return d;
         });
     },
+    monthIndexToYear: function(month){
+        let nestedByMonthIndex = d3.nest().key(d=>d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(this.data);
+        let year = nestedByMonthIndex["$"+month][0][COL_SAMPLE_DATE].getFullYear();
+        return year;
+    },
     markOutliers: function () {
         //Find all outliers for measure
         let normalBounds = this.getNestedByMeasure();
@@ -45,15 +51,20 @@ let myDataProcessor = {
             normalBounds['$' + key].forEach(d => {
                 if (d[COL_VALUE] > bound[1] || d[COL_VALUE] < bound[0]) {
                     d["isOutlier"] = true;
+                    if(d[COL_VALUE] > bound[1]){
+                        d["outlierType"] = "upper";
+                    }
+                    if(d[COL_VALUE] < bound[0]){
+                        d["outlierType"] = "lower";
+                    }
                 } else {
-                    d["isOUtlier"] = false;
+                    d["isOutlier"] = false;
                 }
             });
         });
         this.data = normalBounds.values().reduce((prev, cur) => prev.concat(cur));
     },
     filterOutliers: function () {
-        this.markOutliers();
         this.data = this.data.filter(d => !d["isOutlier"]);
     },
     getNestedByMeasure: function () {
@@ -72,9 +83,19 @@ let myDataProcessor = {
         let keys = nested.keys();
         //Average the value of each month
         keys.forEach(key => {
+            let hasOutlier = false;
+            let outlierType = '';
+            for (let i = 0; i < nested['$' + key].length; i++) {
+                if(nested['$'+key][i]['isOutlier']===true){
+                    hasOutlier=true;
+                    outlierType += nested['$'+key][i]['outlierType'];
+                }
+            }
             nested['$' + key] = {
                 data: nested['$' + key],
-                average: d3.mean(nested['$' + key].map(d => d[COL_VALUE]))
+                average: d3.mean(nested['$' + key].map(d => d[COL_VALUE])),
+                hasOutlier: hasOutlier,
+                outlierType: outlierType
             };
         });
         return nested;
@@ -179,7 +200,6 @@ let myDataProcessor = {
         uniqueLocations.map((d, i) => {
             colorscale.push([i / (uniqueLocations.length - 1), c20[i]]);
         });
-        debugger;
         let data = [{
             type: 'parcoords',
             line: {

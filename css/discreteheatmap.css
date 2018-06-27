@@ -2,7 +2,7 @@ div.tooltip {
     position: absolute;
     text-align: left;
     width: 150px;
-    height: 50px;
+    height: 100px;
     padding-left: 5px;
     font: 8px sans-serif;
     background: lightsteelblue;
@@ -10,17 +10,17 @@ div.tooltip {
     border-radius: 4px;
     pointer-events: none;
 }
-.measureLabel text{
-    font: 8px sans-serif;
-}
 .measureLabel line{
     stroke-width: 0.5px;
     stroke: black;
 }
-.measureRect{
+.separatorRect{
+    fill: rgb(0, 0, 0);
+}
+.locationRect{
     fill: rgb(255, 255, 255);
 }
-.measureRect:hover{
+.locationRect:hover{
     fill: rgb(233, 233, 233);
     opacity: 1;
 }

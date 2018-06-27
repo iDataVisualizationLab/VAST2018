@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="kMeans">
+<entry key="dimensions" type="xint" value="8"/>
+<entry key="ignoredColumns" type="xint" value="5"/>
+<config key="clusterCoverage">
+<entry key="array-size" type="xint" value="5"/>
+<entry key="0" type="xint" value="490"/>
+<entry key="1" type="xint" value="392"/>
+<entry key="2" type="xint" value="370"/>
+<entry key="3" type="xint" value="367"/>
+<entry key="4" type="xint" value="424"/>
+</config>
+<config key="kMeansCluster0">
+<entry key="array-size" type="xint" value="3"/>
+<entry key="0" type="xdouble" value="140328.98775510205"/>
+<entry key="1" type="xdouble" value="85.11632653061224"/>
+<entry key="2" type="xdouble" value="100.23061224489796"/>
+</config>
+<config key="kMeansCluster1">
+<entry key="array-size" type="xint" value="3"/>
+<entry key="0" type="xdouble" value="374625.4693877551"/>
+<entry key="1" type="xdouble" value="86.02295918367346"/>
+<entry key="2" type="xdouble" value="97.88775510204081"/>
+</config>
+<config key="kMeansCluster2">
+<entry key="array-size" type="xint" value="3"/>
+<entry key="0" type="xdouble" value="305203.6216216216"/>
+<entry key="1" type="xdouble" value="83.27027027027027"/>
+<entry key="2" type="xdouble" value="103.53783783783784"/>
+</config>
+<config key="kMeansCluster3">
+<entry key="array-size" type="xint" value="3"/>
+<entry key="0" type="xdouble" value="213220.51498637602"/>
+<entry key="1" type="xdouble" value="77.00272479564033"/>
+<entry key="2" type="xdouble" value="109.42506811989101"/>
+</config>
+<config key="kMeansCluster4">
+<entry key="array-size" type="xint" value="3"/>
+<entry key="0" type="xdouble" value="45077.22405660377"/>
+<entry key="1" type="xdouble" value="79.25"/>
+<entry key="2" type="xdouble" value="105.2004716981132"/>
+</config>
+<config key="FeatureNames">
+<entry key="array-size" type="xint" value="8"/>
+<entry key="0" type="xstring" value="File ID"/>
+<entry key="1" type="xstring" value="X"/>
+<entry key="2" type="xstring" value="Y"/>
+<entry key="3" type="xstring" isnull="true" value=""/>
+<entry key="4" type="xstring" isnull="true" value=""/>
+<entry key="5" type="xstring" isnull="true" value=""/>
+<entry key="6" type="xstring" isnull="true" value=""/>
+<entry key="7" type="xstring" isnull="true" value=""/>
+</config>
+</config>

@@ -166,22 +166,12 @@ function drawParallelCoordinateHandler(data) {
 
 
 function plotDiscreteHeatMap() {
-    plotData.locations = myDataProcessor.getAllLocations();
-    plotData.measures = myDataProcessor.getAllMeasures();
-    //Test ordering the measures
-    plotData.measures.sort((a, b)=>a.localeCompare(b));
-    plotData.months = d3.range(0, myDataProcessor.getMonthNumber(), 1);
-    plotData.data = myDataProcessor.getNestedByMeasureLocationMonth();
-    plotData.scales = myDataProcessor.getNestedScales();
-    discreteHeatMapPlotter.plot("discreteHeatMapDiv");
-}
-function plotDiscreteHeatMap1() {
     let locationData = [
         {name:"Kohsoom",stream: 1},
         {name:"Boonsri",stream: 1},
-        {name:"Busarakhan", stream: 1},
         {name:"Chai", stream: 1},
         {name:"Kannika",stream: 1},
+        {name:"Busarakhan", stream: 1},
         {name:"Achara",stream: 2},
         {name:"Somchair",stream: 2},
         {name:"Sakda",stream: 2},
@@ -194,7 +184,7 @@ function plotDiscreteHeatMap1() {
     plotData.months = d3.range(0, myDataProcessor.getMonthNumber(), 1);
     plotData.data = myDataProcessor.getNestedByMeasureLocationMonth();
     plotData.scales = myDataProcessor.getNestedScales();
-    discreteHeatMapPlotter.plot("discreteHeatMapDiv1");
+    discreteHeatMapPlotter.plot("discreteHeatMapDiv");
 }
 function resetZoom(){
     let graph = d3.select("#discreteHeatMapDiv").select("g.graph");
