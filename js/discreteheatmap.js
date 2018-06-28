@@ -3,10 +3,11 @@ let plotData = {
     locations: [],
     months: [],
     scales: null,
-    data: []
+    data: [],
+
 }
 let plotLayout = {
-    boxWidth: 3,
+    boxWidth: 6,
     boxHeight: 2,
     measureLabelWidth: 150,
     title: null,
@@ -29,10 +30,18 @@ let discreteHeatMapPlotter = {
         let svgHeight = graphHeight + timeLabelHeight;
 
         // Define the div for the tooltip
-        var div = d3.select("body").append("div")
-            .attr("class", "tooltip")
-            .style("opacity", 0);
-
+        var divPopup = d3.select("div.popup");
+        if(divPopup.node()==null){
+            divPopup = d3.select("body").append("div")
+                .attr("class", "popup")
+                .style("opacity", 0);
+        }
+        var div = d3.select("div.tooltip");
+        if(div.node()==null){
+            div = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 0);
+        }
         //Process the graph
         let graphDiv = d3.select("#" + theDivId);
         graphDiv.selectAll("*").remove();
@@ -63,8 +72,8 @@ let discreteHeatMapPlotter = {
                                     .attr("transform", "translate(" + (ti * boxWidth) + "," + ((li * numberOfMeasures + mi) * boxHeight + li * separatorHeight) + ")")
                                     .attr("fill", plotLayout.colorScales(plotData.scales["$" + measure](plotData.data['$' + key].average)))
                                     .datum(curr)
-                                    .on("mouseover", onMouseOver)
-                                    .on("mouseout", onMouseOut);
+                                    .on("mouseover", onMouseOverPopup)
+                                    .on("mouseout", onMouseOutPopup);
                             } else {
                                 let strokeColor = null;
                                 let fillColor = null;
@@ -86,8 +95,8 @@ let discreteHeatMapPlotter = {
                                     .style("stroke", strokeColor)
                                     .style("fill", fillColor)
                                     .datum(curr)
-                                    .on("mouseover", onMouseOver)
-                                    .on("mouseout", onMouseOut);
+                                    .on("mouseover", onMouseOverPopup);
+                                    //.on("mouseout", onMouseOutPopup);
                             }
                         }
                     });
@@ -99,22 +108,22 @@ let discreteHeatMapPlotter = {
         });
 
 
-        var zoomHandler = d3.zoom()
-            .on("zoom", zoomActions);
-
-        zoomHandler(svg);
-
-
-        function zoomActions() {
-            graph.attr("transform", d3.event.transform);
-        }
+        // var zoomHandler = d3.zoom()
+        //     .on("zoom", zoomActions);
+        //
+        // zoomHandler(svg);
+        //
+        //
+        // function zoomActions() {
+        //     graph.attr("transform", d3.event.transform);
+        // }
 
         function onMouseOver(d) {
             div.transition()
                 .style("opacity", .9);
-            let msg = d.data[0]['measure'];
+            let msg = d.data[0][COL_MEASURE];
             d.data.forEach(row=>{
-                msg += "<br/>" + d3.timeFormat('%Y-%m-%d')(row['sample date']) + ":" + row['value'];
+                msg += "<br/>" + d3.timeFormat('%Y-%m-%d')(row[COL_SAMPLE_DATE]) + ":" + row[COL_VALUE];
             });
 
             div.html(msg)
@@ -123,6 +132,58 @@ let discreteHeatMapPlotter = {
         }
         function onMouseOut(d) {
             div.transition().style("opacity", 0);
+        }
+
+        function onMouseOverPopup(d) {
+            let measure = d.data[0][COL_MEASURE];
+            let location = d.data[0][COL_LOCATION];
+            let boxHeight = 3*plotLayout.boxHeight;
+            divPopup.selectAll("*").remove();
+            divPopup.transition()
+                .style("opacity", 1);
+            divPopup.style("left", 8 + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+            let graph = divPopup.append("svg").attr("width", plotData.months.length*plotLayout.boxWidth).attr("height", boxHeight).append("g");
+            plotData.months.forEach((month, ti) => {
+                let key = measure + "_" + location + "_" + month;
+                if (plotData.data['$' + key]) {
+                    let curr = plotData.data['$' + measure + '_' + location + '_' + (month)];
+                    if (curr.hasOutlier === false) {
+                        graph.append("rect").attr("x", 0).attr("y", 0).attr("width", boxWidth).attr("height", boxHeight)
+                            .attr("transform", "translate(" + (ti * boxWidth) + "," + 0 + ")")
+                            .attr("fill", plotLayout.colorScales(plotData.scales["$" + measure](plotData.data['$' + key].average)))
+                            .datum(curr)
+                            .on("mouseover", onMouseOver)
+                            .on("mouseout", onMouseOut);
+                    } else {
+                        let strokeColor = null;
+                        let fillColor = null;
+                        if (curr.outlierType.indexOf("lower") >= 0) {
+                            fillColor = 'white';
+                            strokeColor = plotLayout.colorScales(0);
+                        }
+                        if (curr.outlierType.indexOf("upper") >= 0) {
+                            fillColor = 'white';
+                            strokeColor = plotLayout.colorScales(1);
+                        }
+                        if (curr.outlierType.indexOf("lower") >= 0 && curr.outlierType.indexOf("upper") >= 0) {
+                            fillColor = plotLayout.colorScales(0);
+                            strokeColor = plotLayout.colorScales(1);
+                        }
+                        graph.append("circle").attr("x", 0).attr("y", 0).attr("r", 2)
+                            .attr("transform", "translate(" + (ti * boxWidth + boxWidth / 2) + "," + (boxHeight / 2) + ")")
+                            .attr("stroke-width", 2)
+                            .style("stroke", strokeColor)
+                            .style("fill", fillColor)
+                            .datum(curr)
+                            .on("mouseover", onMouseOver)
+                            .on("mouseout", onMouseOut);
+                    }
+                }
+            });
+        }
+        function onMouseOutPopup(d) {
+            divPopup.transition().style("opacity", 0);
         }
     }
 }

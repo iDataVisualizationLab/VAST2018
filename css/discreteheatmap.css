@@ -24,3 +24,11 @@ div.tooltip {
     fill: rgb(233, 233, 233);
     opacity: 1;
 }
+div.popup {
+    position: absolute;
+    border: 1px solid black;
+    border: 1px solid rgba(0,0,0, 1);
+    background-color: rgba(255,255,255, 1);
+    border-radius: 6px;
+    box-shadow: 5px 5px 5px #444;
+}
