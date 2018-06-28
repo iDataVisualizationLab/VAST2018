@@ -73,21 +73,21 @@ let discreteHeatMapPlotter = {
                                     .attr("fill", plotLayout.colorScales(plotData.scales["$" + measure](plotData.data['$' + key].average)))
                                     .datum(curr)
                                     .on("mouseover", onMouseOverPopup)
-                                    .on("mouseout", onMouseOutPopup);
+                                    //.on("mouseout", onMouseOutPopup);
                             } else {
                                 let strokeColor = null;
                                 let fillColor = null;
                                 if (curr.outlierType.indexOf("lower") >= 0) {
                                     fillColor = 'white';
-                                    strokeColor = plotLayout.colorScales(0);
+                                    strokeColor = plotLayout.colorScales(1);//1 for green
                                 }
                                 if (curr.outlierType.indexOf("upper") >= 0) {
                                     fillColor = 'white';
-                                    strokeColor = plotLayout.colorScales(1);
+                                    strokeColor = plotLayout.colorScales(0);//0 for red
                                 }
                                 if (curr.outlierType.indexOf("lower") >= 0 && curr.outlierType.indexOf("upper") >= 0) {
-                                    fillColor = plotLayout.colorScales(0);
-                                    strokeColor = plotLayout.colorScales(1);
+                                    fillColor = plotLayout.colorScales(1);
+                                    strokeColor = plotLayout.colorScales(0);
                                 }
                                 graph.append("circle").attr("x", 0).attr("y", 0).attr("r", 1)
                                     .attr("transform", "translate(" + (ti * boxWidth + boxWidth / 2) + "," + ((li * numberOfMeasures + mi) * boxHeight + li * separatorHeight + boxHeight / 2) + ")")
@@ -160,15 +160,15 @@ let discreteHeatMapPlotter = {
                         let fillColor = null;
                         if (curr.outlierType.indexOf("lower") >= 0) {
                             fillColor = 'white';
-                            strokeColor = plotLayout.colorScales(0);
+                            strokeColor = plotLayout.colorScales(1);
                         }
                         if (curr.outlierType.indexOf("upper") >= 0) {
                             fillColor = 'white';
-                            strokeColor = plotLayout.colorScales(1);
+                            strokeColor = plotLayout.colorScales(0);
                         }
                         if (curr.outlierType.indexOf("lower") >= 0 && curr.outlierType.indexOf("upper") >= 0) {
-                            fillColor = plotLayout.colorScales(0);
-                            strokeColor = plotLayout.colorScales(1);
+                            fillColor = plotLayout.colorScales(1);
+                            strokeColor = plotLayout.colorScales(0);
                         }
                         graph.append("circle").attr("x", 0).attr("y", 0).attr("r", 2)
                             .attr("transform", "translate(" + (ti * boxWidth + boxWidth / 2) + "," + (boxHeight / 2) + ")")
