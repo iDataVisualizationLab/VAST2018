@@ -20,9 +20,12 @@ div.tooltip {
 .locationRect{
     fill: rgb(255, 255, 255);
 }
-.locationRect:hover{
-    fill: rgb(233, 233, 233);
-    opacity: 1;
+/*.locationRect:hover{*/
+    /*fill: rgb(233, 233, 233);*/
+    /*opacity: 1;*/
+/*}*/
+.cell{
+    cursor:pointer;
 }
 div.popup {
     position: absolute;

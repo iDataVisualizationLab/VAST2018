@@ -4,16 +4,30 @@ let plotData = {
     months: [],
     scales: null,
     data: [],
-
-}
+    groups: [],
+};
 let plotLayout = {
     boxWidth: 6,
-    boxHeight: 2,
+    boxHeight: 6,
+    separatorHeight: 2,
+    outlierRadius: 2,
+    outlierStrokeWidth: 2,
     measureLabelWidth: 150,
     title: null,
-    colorScales: d3.interpolateRdYlGn
-}
+    colorScales: d3.interpolateRdYlGn,
+    groupByLocation: true,
+    timeLabelHeight: 20
+};
+let allCells = {};
+let allLabels = {};
+let allLocations = {};
+let allColors = {};
 let discreteHeatMapPlotter = {
+    graph: null,
+    svg: null,
+    graphWidth: null,
+    graphHeight: null,
+    graphLabels: null,
     plot: function (theDivId) {
         let boxWidth = plotLayout.boxWidth;
         let boxHeight = plotLayout.boxHeight;
@@ -21,169 +35,198 @@ let discreteHeatMapPlotter = {
         let numberOfLocations = plotData.locations.length;
         let numberOfMonths = plotData.months.length;
         let measureLabelWidth = plotLayout.measureLabelWidth;
-        let separatorHeight = 2;
-        let measureLabelHeight = numberOfLocations * (boxHeight + separatorHeight);
-        let timeLabelHeight = 20;
+        let timeLabelHeight = plotLayout.timeLabelHeight;
         let graphWidth = numberOfMonths * boxWidth;
-        let graphHeight = numberOfMeasures * measureLabelHeight;
+        this.graphWidth = graphWidth;
+        let graphHeight = numberOfMeasures * numberOfLocations * boxHeight + plotLayout.separatorHeight * plotData.groups.length;
+        this.graphHeight = graphHeight;
         let svgWidth = graphWidth + measureLabelWidth;
         let svgHeight = graphHeight + timeLabelHeight;
 
-        // Define the div for the tooltip
-        var divPopup = d3.select("div.popup");
-        if(divPopup.node()==null){
-            divPopup = d3.select("body").append("div")
-                .attr("class", "popup")
-                .style("opacity", 0);
-        }
-        var div = d3.select("div.tooltip");
-        if(div.node()==null){
-            div = d3.select("body").append("div")
-                .attr("class", "tooltip")
-                .style("opacity", 0);
-        }
         //Process the graph
         let graphDiv = d3.select("#" + theDivId);
         graphDiv.selectAll("*").remove();
         let svg = graphDiv.append("svg").attr("width", svgWidth).attr("height", svgHeight);
-        //Time label
-        let firstYear = myDataProcessor.monthIndexToYear(0);
-        plotData.months.forEach(month => {
-            let year = myDataProcessor.monthIndexToYear(month);
-            svg.append("text").text(year).attr("transform", "translate(" + ((year - firstYear) * 12 * boxWidth) + ", " + (timeLabelHeight / 2) + ")")
-                .attr("text-anchor", "start").attr("alignment-baseline", "middle").attr("style", "font: 8px sans-serif");
-        });
-        let graphWrapper = svg.append("g").attr("class", "graphWrapper").attr("transform", "translate(0, " + timeLabelHeight + ")");
+        this.svg = svg;
+        let graphWrapper = svg.append("g").attr("class", "graphWrapper").attr("transform", "translate(0, " + plotLayout.timeLabelHeight + ")");
         let graph = graphWrapper.append("g").attr("class", "graph");
-        //Now location first
-        let labelHeight = numberOfMeasures * boxHeight;
+        this.graph = graph;
+        var div = setupToolTip();
+        generateTimeLabels(svg);
+        //Generate cells
+        generateCells();
+        this.calculatePositions();
+        this.setPositions();
+        calculateColors();
+        setColors();
+        this.generateGroupLabels();
 
-        plotData.locations.forEach((location, li) => {
-            //For the background
-            graph.append("rect").attr("x", 0).attr("y", (li * (numberOfMeasures * boxHeight + separatorHeight))).attr("width", graphWidth + measureLabelWidth).attr("height", labelHeight).attr("class", "locationRect");
-            plotData.measures.forEach((measure, mi) => {
-                setInterval(function () {
-                    plotData.months.forEach((month, ti) => {
+        function calculateColors() {
+            plotData.measures.forEach(measure => {
+                let measureScale = plotData.scales["$" + measure];
+                plotData.locations.forEach(location => {
+                    plotData.months.forEach(month => {
                         let key = measure + "_" + location + "_" + month;
-                        if (plotData.data['$' + key]) {
-                            let curr = plotData.data['$' + measure + '_' + location + '_' + (month)];
-                            if (curr.hasOutlier === false) {
-                                graph.append("rect").attr("x", 0).attr("y", 0).attr("width", boxWidth).attr("height", boxHeight)
-                                    .attr("transform", "translate(" + (ti * boxWidth) + "," + ((li * numberOfMeasures + mi) * boxHeight + li * separatorHeight) + ")")
-                                    .attr("fill", plotLayout.colorScales(plotData.scales["$" + measure](plotData.data['$' + key].average)))
-                                    .datum(curr)
-                                    .on("mouseover", onMouseOverPopup)
-                                    //.on("mouseout", onMouseOutPopup);
+                        let cell = allCells['$' + key];
+                        if (cell) {
+                            let d = cell.datum();
+                            if (d.hasOutlier === false) {
+                                allColors['$' + key] = {
+                                    fill: plotLayout.colorScales(measureScale(d.average))
+                                };
                             } else {
                                 let strokeColor = null;
                                 let fillColor = null;
-                                if (curr.outlierType.indexOf("lower") >= 0) {
+                                if (d.outlierType.indexOf("lower") >= 0) {
                                     fillColor = 'white';
-                                    strokeColor = plotLayout.colorScales(1);//1 for green
+                                    strokeColor = 'green';//1 for green
                                 }
-                                if (curr.outlierType.indexOf("upper") >= 0) {
+                                if (d.outlierType.indexOf("upper") >= 0) {
                                     fillColor = 'white';
-                                    strokeColor = plotLayout.colorScales(0);//0 for red
+                                    strokeColor = 'black';
                                 }
-                                if (curr.outlierType.indexOf("lower") >= 0 && curr.outlierType.indexOf("upper") >= 0) {
-                                    fillColor = plotLayout.colorScales(1);
-                                    strokeColor = plotLayout.colorScales(0);
+                                if (d.outlierType.indexOf("lower") >= 0 && d.outlierType.indexOf("upper") >= 0) {
+                                    fillColor = 'green';
+                                    strokeColor = 'black';
                                 }
-                                graph.append("circle").attr("x", 0).attr("y", 0).attr("r", 1)
-                                    .attr("transform", "translate(" + (ti * boxWidth + boxWidth / 2) + "," + ((li * numberOfMeasures + mi) * boxHeight + li * separatorHeight + boxHeight / 2) + ")")
-                                    .attr("stroke-width", 1)
-                                    .style("stroke", strokeColor)
-                                    .style("fill", fillColor)
-                                    .datum(curr)
-                                    .on("mouseover", onMouseOverPopup);
-                                    //.on("mouseout", onMouseOutPopup);
+                                allColors['$' + key] = {
+                                    fill: fillColor,
+                                    stroke: strokeColor
+                                };
                             }
                         }
                     });
-                }, 0);
+                });
             });
-            graph.append("text").attr("x", 0).attr("y", (labelHeight / 2)).text(location).attr("text-anchor", "start").attr("alignment-baseline", "middle")
-                .attr("transform", "translate(" + graphWidth + ", " + (li * numberOfMeasures * boxHeight + li * separatorHeight) + ")").attr("fill", "black").attr("style", "font: 10px sans-serif");
-            graph.append("rect").attr("x", 0).attr("y", (li * (numberOfMeasures * boxHeight + separatorHeight))).attr("width", graphWidth + measureLabelWidth).attr("height", separatorHeight).attr("class", "separatorRect");
-        });
+        }
 
+        function setColors() {
+            let keys = d3.keys(allCells);
+            keys.forEach(key => {
+                let cell = allCells[key];
+                let color = allColors[key];
+                cell.attr("fill", color.fill);
+                if (color.stroke) {
+                    cell.attr("stroke", color.stroke);
+                }
+            });
+        }
 
-        // var zoomHandler = d3.zoom()
-        //     .on("zoom", zoomActions);
-        //
-        // zoomHandler(svg);
-        //
-        //
-        // function zoomActions() {
-        //     graph.attr("transform", d3.event.transform);
-        // }
+        function onClickShow(d) {
 
-        function onMouseOver(d) {
-            div.transition()
+            div
                 .style("opacity", .9);
-            let msg = d.data[0][COL_MEASURE];
-            d.data.forEach(row=>{
+            let msg = d.data[0][COL_MEASURE] + ' at ' + d.data[0][COL_LOCATION];
+            d.data.forEach(row => {
                 msg += "<br/>" + d3.timeFormat('%Y-%m-%d')(row[COL_SAMPLE_DATE]) + ":" + row[COL_VALUE];
             });
 
             div.html(msg)
                 .style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY - 28) + "px");
-        }
-        function onMouseOut(d) {
-            div.transition().style("opacity", 0);
+
         }
 
-        function onMouseOverPopup(d) {
-            let measure = d.data[0][COL_MEASURE];
-            let location = d.data[0][COL_LOCATION];
-            let boxHeight = 3*plotLayout.boxHeight;
-            divPopup.selectAll("*").remove();
-            divPopup.transition()
-                .style("opacity", 1);
-            divPopup.style("left", 8 + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
-            let graph = divPopup.append("svg").attr("width", plotData.months.length*plotLayout.boxWidth).attr("height", boxHeight).append("g");
-            plotData.months.forEach((month, ti) => {
-                let key = measure + "_" + location + "_" + month;
-                if (plotData.data['$' + key]) {
-                    let curr = plotData.data['$' + measure + '_' + location + '_' + (month)];
-                    if (curr.hasOutlier === false) {
-                        graph.append("rect").attr("x", 0).attr("y", 0).attr("width", boxWidth).attr("height", boxHeight)
-                            .attr("transform", "translate(" + (ti * boxWidth) + "," + 0 + ")")
-                            .attr("fill", plotLayout.colorScales(plotData.scales["$" + measure](plotData.data['$' + key].average)))
-                            .datum(curr)
-                            .on("mouseover", onMouseOver)
-                            .on("mouseout", onMouseOut);
-                    } else {
-                        let strokeColor = null;
-                        let fillColor = null;
-                        if (curr.outlierType.indexOf("lower") >= 0) {
-                            fillColor = 'white';
-                            strokeColor = plotLayout.colorScales(1);
+        function onClickHide(d) {
+            if (d3.event.target.classList[0] !== 'cell') {
+                div.style("opacity", 0);
+            }
+        }
+
+        function generateCells() {
+            plotData.measures.forEach(measure => {
+                plotData.locations.forEach(location => {
+                    plotData.months.forEach(month => {
+                        let key = measure + "_" + location + "_" + month;
+                        let curr = plotData.data['$' + key];
+                        if (curr) {
+                            if (curr.hasOutlier === false) {
+                                allCells['$' + key] = graph.append("rect").attr("x", 0).attr("y", 0).attr("width", boxWidth).attr("height", boxHeight).attr("fill", "steelblue")
+                                    .datum(curr)
+                                    .attr("class", "cell")
+                            } else {
+                                allCells['$' + key] = graph.append("circle").attr("x", 0).attr("y", 0).attr("r", plotLayout.outlierRadius).attr("stroke-width", plotLayout.outlierStrokeWidth).attr("class", "cell").attr("fill", "steelblue")
+                                    .datum(curr);
+                            }
+                            allCells['$' + key].on("click", onClickShow);
                         }
-                        if (curr.outlierType.indexOf("upper") >= 0) {
-                            fillColor = 'white';
-                            strokeColor = plotLayout.colorScales(0);
-                        }
-                        if (curr.outlierType.indexOf("lower") >= 0 && curr.outlierType.indexOf("upper") >= 0) {
-                            fillColor = plotLayout.colorScales(1);
-                            strokeColor = plotLayout.colorScales(0);
-                        }
-                        graph.append("circle").attr("x", 0).attr("y", 0).attr("r", 2)
-                            .attr("transform", "translate(" + (ti * boxWidth + boxWidth / 2) + "," + (boxHeight / 2) + ")")
-                            .attr("stroke-width", 2)
-                            .style("stroke", strokeColor)
-                            .style("fill", fillColor)
-                            .datum(curr)
-                            .on("mouseover", onMouseOver)
-                            .on("mouseout", onMouseOut);
-                    }
-                }
+                    });
+                });
             });
         }
-        function onMouseOutPopup(d) {
-            divPopup.transition().style("opacity", 0);
+
+        function generateTimeLabels(svg) {
+            let firstYear = myDataProcessor.monthIndexToYear(0);
+            plotData.months.forEach(month => {
+                let year = myDataProcessor.monthIndexToYear(month);
+                svg.append("text").text(year).attr("transform", "translate(" + ((year - firstYear) * 12 * plotLayout.boxWidth) + ", " + (plotLayout.timeLabelHeight / 2) + ")")
+                    .attr("text-anchor", "start").attr("alignment-baseline", "middle").attr("style", "font: 8px sans-serif");
+            });
         }
+
+        function setupToolTip() {
+            var div = d3.select("div.tooltip");
+            if (div.node() == null) {
+                div = d3.select("body").append("div")
+                    .attr("class", "tooltip")
+                    .style("opacity", 0);
+            }
+            d3.select("body").on("click", onClickHide);
+            return div;
+        }
+    },
+    calculatePositions: function () {
+        //Default outers and inners
+        let outers = plotData.locations;
+        let inners = plotData.measures;
+        if (plotLayout.groupByLocation === false) {
+            outers = plotData.measures;
+            inners = plotData.locations;
+        }
+        let innerNumber = inners.length;
+        outers.forEach((outer, outerI) => {
+            inners.forEach((inner, innerI) => {
+                let measure = plotLayout.groupByLocation ? inner : outer;
+                let location = plotLayout.groupByLocation ? outer : inner;
+                plotData.months.forEach((month, ti) => {
+                    let key = measure + "_" + location + "_" + month;
+                    let cell = allCells['$' + key];
+                    if (cell) {
+                        allLocations['$' + key] = {
+                            x: (ti * plotLayout.boxWidth),
+                            y: ((outerI * innerNumber + innerI) * plotLayout.boxHeight + (outerI + 1) * plotLayout.separatorHeight)
+                        };
+                        if (cell.datum().hasOutlier === true) {
+                            allLocations['$' + key].x += plotLayout.boxWidth / 2;
+                            allLocations['$' + key].y += plotLayout.boxHeight / 2;
+                        }
+                    }
+                });
+            });
+        });
+    },
+    setPositions: function () {
+        let keys = d3.keys(allCells);
+        keys.forEach(key => {
+            allCells[key].attr("transform", "translate(" + allLocations[key].x + "," + allLocations[key].y + ")");
+        });
+    },
+    generateGroupLabels: function () {
+        if(!this.graphLabels){
+            this.graphLabels = this.graph.append("g");
+        }
+        this.graphLabels.selectAll("*").remove();
+        let numberOfLocations = plotData.locations.length;
+        let numberOfMeasures = plotData.measures.length;
+        let boxHeight = plotLayout.boxHeight;
+        let measureLabelWidth = plotLayout.measureLabelWidth;
+        let graphWidth = this.graphWidth;
+        let numberOfElementsInGroup = numberOfLocations * numberOfMeasures / plotData.groups.length;
+        let labelHeight = numberOfElementsInGroup * boxHeight + plotLayout.separatorHeight;
+        plotData.groups.forEach((group, i) => {
+            this.graphLabels.append("text").attr("x", 0).attr("y", (labelHeight / 2)).text(group).attr("text-anchor", "start").attr("alignment-baseline", "middle")
+                .attr("transform", "translate(" + graphWidth + ", " + i * labelHeight + ")").attr("fill", "black").attr("style", "font: 10px sans-serif");
+            this.graphLabels.append("rect").attr("x", 0).attr("y", i * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect");
+        });
     }
 }

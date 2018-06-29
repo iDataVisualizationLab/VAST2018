@@ -28,8 +28,12 @@
 <div id="scatterDiv"></div>
 <button onclick="drawParallelCoordinates()">Parallel Coordinates</button>
 <div id="parallelCoordinatesDiv"></div>
-<button onclick="plotDiscreteHeatMap()">Heat map</button>
-<button onclick="resetZoom()">Reset zoom</button>
+<button onclick="plotDiscreteHeatMap('location')">Heat map by location</button>
+Group by:
+<select onchange="changeOrder()" id="groupSelect" disabled="true">
+    <option selected="true" value="location">location</option>
+    <option value="measure">measure</option>
+</select>
 <div id="discreteHeatMapDiv"></div>
 </body>
 </html>

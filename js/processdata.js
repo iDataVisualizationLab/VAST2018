@@ -78,8 +78,11 @@ let myDataProcessor = {
         return nested;
     },
     getNestedByMeasureLocationMonth: function () {
+        return this.getNestedByMeasureLocationMonthFromData(this.data);
+    },
+    getNestedByMeasureLocationMonthFromData: function (data) {
         //Nest by Measure + Location + Month Index
-        let nested = d3.nest().key(d => d[COL_MEASURE] + "_" + d[COL_LOCATION] + "_" + d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(this.data);
+        let nested = d3.nest().key(d => d[COL_MEASURE] + "_" + d[COL_LOCATION] + "_" + d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(data);
         let keys = nested.keys();
         //Average the value of each month
         keys.forEach(key => {
@@ -127,18 +130,11 @@ let myDataProcessor = {
         return measureData;
     },
     getNestedScales: function () {
-        //This scale is by the individual values => but we print the heatmap with average scales.
-        //Nest by location + Measure
-        // let scales = this.getNestedByMeasure();
-        // let keys = scales.keys();
-        // keys.forEach(key=>{
-        //     scales['$'+key] = d3.scaleLinear().domain(d3.extent(scales['$'+key].map(d=>d[COL_VALUE]))).range([1, 0.5]);
-        // });
-        //return scales;
-
         //Scales by the average of the month.
         var scales = {};
-        let averages = this.getNestedByMeasureLocationMonth();
+        //Filter the outliers while calculating the range.
+        let filteredData = this.data.filter(d=>!d["isOutlier"]);
+        let averages = this.getNestedByMeasureLocationMonthFromData(filteredData);
         let measures = this.getAllMeasures();
         measures.forEach(measure => {
             //Get all averaged values for it.
@@ -152,7 +148,6 @@ let myDataProcessor = {
         });
         return scales;
     },
-
     populateComboBox: function (columnName, populateComboBoxHandler) {
         let column = this.unpack(this.data, columnName);
         let uniqueValues = d3.set(column).values();
