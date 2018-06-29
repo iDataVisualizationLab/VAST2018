@@ -18,18 +18,15 @@
     <link rel="stylesheet" href="css/main.css"/>
     <!--data processing file-->
     <script src="js/processdata.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/basicplots.js"></script>
 </head>
 <body>
-<div>
-    Group by<select onchange="changeOrder()" id="groupSelect" disabled="true">
-    <option selected="true" value="location">location</option>
-    <option value="measure">measure</option>
-</select>
-</div>
-<div id="mapHeader">
-    <svg id="mapHeaderSVG"></svg>
-</div>
-<div id="discreteHeatMapDiv"></div>
+<select id="locations"></select>
+<select id="measures"></select>
+<button onclick="plotLineGraph()">Plot line graph</button>
+<button onclick="plotBoxPlots()">Plot box plots</button>
+<div id="scatterDiv"></div>
+<button onclick="drawParallelCoordinates()">Parallel Coordinates</button>
+<div id="parallelCoordinatesDiv"></div>
 </body>
 </html>

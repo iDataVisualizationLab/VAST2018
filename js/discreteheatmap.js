@@ -52,7 +52,7 @@ let discreteHeatMapPlotter = {
         let graph = graphWrapper.append("g").attr("class", "graph");
         this.graph = graph;
         var div = setupToolTip();
-        generateTimeLabels(svg);
+        generateTimeLabels();
         //Generate cells
         generateCells();
         this.calculatePositions();
@@ -155,11 +155,14 @@ let discreteHeatMapPlotter = {
             });
         }
 
-        function generateTimeLabels(svg) {
+        function generateTimeLabels() {
+            var timeSvg = d3.select("#mapHeaderSVG");
+            timeSvg.attr("width", plotData.months.length * plotLayout.boxWidth + plotLayout.measureLabelWidth);
+            timeSvg.attr("height", plotLayout.timeLabelHeight);
             let firstYear = myDataProcessor.monthIndexToYear(0);
             plotData.months.forEach(month => {
                 let year = myDataProcessor.monthIndexToYear(month);
-                svg.append("text").text(year).attr("transform", "translate(" + ((year - firstYear) * 12 * plotLayout.boxWidth) + ", " + (plotLayout.timeLabelHeight / 2) + ")")
+                timeSvg.append("text").text(year).attr("transform", "translate(" + ((year - firstYear) * 12 * plotLayout.boxWidth) + ", " + (plotLayout.timeLabelHeight / 2) + ")")
                     .attr("text-anchor", "start").attr("alignment-baseline", "middle").attr("style", "font: 8px sans-serif");
             });
         }
@@ -212,7 +215,7 @@ let discreteHeatMapPlotter = {
         });
     },
     generateGroupLabels: function () {
-        if(!this.graphLabels){
+        if (!this.graphLabels) {
             this.graphLabels = this.graph.append("g");
         }
         this.graphLabels.selectAll("*").remove();
