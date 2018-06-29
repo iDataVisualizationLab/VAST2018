@@ -48,8 +48,8 @@ function changeOrder() {
         plotLayout.groupByLocation = false;
         plotData.groups = plotData.measures;
     }
-    discreteHeatMapPlotter.calculatePositions();
-    discreteHeatMapPlotter.setPositions();
+    discreteHeatMapPlotter.calculateRowPositions();
+    discreteHeatMapPlotter.setRowPositions();
     discreteHeatMapPlotter.generateGroupLabels();
     $("#groupSelect").attr("disabled", false);
 }

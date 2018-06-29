@@ -7,8 +7,8 @@ let plotData = {
     groups: [],
 };
 let plotLayout = {
-    boxWidth: 6,
-    boxHeight: 2,
+    boxWidth: 8,
+    boxHeight: 8,
     separatorHeight: 2,
     outlierRadius: 1,
     outlierStrokeWidth: 2,
@@ -19,6 +19,8 @@ let plotLayout = {
     timeLabelHeight: 20
 };
 let allCells = {};
+let allRows = {};
+let allRowLocations = {};
 let allLabels = {};
 let allLocations = {};
 let allColors = {};
@@ -55,8 +57,8 @@ let discreteHeatMapPlotter = {
         generateTimeLabels();
         //Generate cells
         generateCells();
-        this.calculatePositions();
-        this.setPositions();
+        this.calculateRowPositions();
+        this.setRowPositions();
         calculateColors();
         setColors();
         this.generateGroupLabels();
@@ -134,28 +136,31 @@ let discreteHeatMapPlotter = {
         }
 
         function generateCells() {
-            let strokeWidthRange = [0.5, boxHeight/2];
+            let strokeWidthRange = [0.5, boxHeight / 2];
             let outlierDomain = [1, 10];//TODO: Calculate instead of fixing
             let outlierStrokeScale = d3.scaleLinear().domain(outlierDomain).range(strokeWidthRange);
             plotData.measures.forEach(measure => {
                 plotData.locations.forEach(location => {
+                    let rowKey = measure + "_" + location;
+                    let row = graph.append("g");
                     plotData.months.forEach(month => {
                         let key = measure + "_" + location + "_" + month;
                         let curr = plotData.data['$' + key];
                         if (curr) {
                             if (curr.hasOutlier === false) {
-                                allCells['$' + key] = graph.append("rect").attr("x", 0).attr("y", 0).attr("width", boxWidth).attr("height", boxHeight).attr("fill", "steelblue")
+                                allCells['$' + key] = row.append("rect").attr("x", month * boxWidth).attr("y", 0).attr("width", boxWidth).attr("height", boxHeight).attr("fill", "steelblue")
                                     .datum(curr)
                                     .attr("class", "cell")
                             } else {
                                 let strokeWidth = outlierStrokeScale(curr.outlierCount);
-                                let r = (boxHeight - strokeWidth)/2;
-                                allCells['$' + key] = graph.append("circle").attr("x", 0).attr("y", 0).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue")
+                                let r = (boxHeight - strokeWidth) / 2;
+                                allCells['$' + key] = row.append("circle").attr("cx", month * boxWidth + boxWidth / 2).attr("cy", boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue")
                                     .datum(curr);
                             }
                             allCells['$' + key].on("click", onClickShow);
                         }
                     });
+                    allRows['$' + rowKey] = row;
                 });
             });
         }
@@ -183,7 +188,7 @@ let discreteHeatMapPlotter = {
             return div;
         }
     },
-    calculatePositions: function () {
+    calculateRowPositions: function () {
         //Default outers and inners
         let outers = plotData.locations;
         let inners = plotData.measures;
@@ -194,29 +199,22 @@ let discreteHeatMapPlotter = {
         let innerNumber = inners.length;
         outers.forEach((outer, outerI) => {
             inners.forEach((inner, innerI) => {
+                //TODO: will need to change this if we have new way of calculating location.
                 let measure = plotLayout.groupByLocation ? inner : outer;
                 let location = plotLayout.groupByLocation ? outer : inner;
-                plotData.months.forEach((month, ti) => {
-                    let key = measure + "_" + location + "_" + month;
-                    let cell = allCells['$' + key];
-                    if (cell) {
-                        allLocations['$' + key] = {
-                            x: (ti * plotLayout.boxWidth),
-                            y: ((outerI * innerNumber + innerI) * plotLayout.boxHeight + (outerI + 1) * plotLayout.separatorHeight)
-                        };
-                        if (cell.datum().hasOutlier === true) {
-                            allLocations['$' + key].x += plotLayout.boxWidth / 2;
-                            allLocations['$' + key].y += plotLayout.boxHeight / 2;
-                        }
-                    }
-                });
+                let rowKey = measure + "_" + location;
+                allRowLocations['$' + rowKey] = {
+                    y: ((outerI * innerNumber + innerI) * plotLayout.boxHeight + (outerI + 1) * plotLayout.separatorHeight)
+                }
             });
         });
     },
-    setPositions: function () {
-        let keys = d3.keys(allCells);
+    setRowPositions: function () {
+        let keys = d3.keys(allRows);
         keys.forEach(key => {
-            allCells[key].attr("transform", "translate(" + allLocations[key].x + "," + allLocations[key].y + ")");
+            setInterval(function(){
+                allRows[key].attr("transform", "translate(0, "+ allRowLocations[key].y + ")");
+            });
         });
     },
     generateGroupLabels: function () {
