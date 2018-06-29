@@ -8,9 +8,9 @@ let plotData = {
 };
 let plotLayout = {
     boxWidth: 6,
-    boxHeight: 6,
+    boxHeight: 2,
     separatorHeight: 2,
-    outlierRadius: 2,
+    outlierRadius: 1,
     outlierStrokeWidth: 2,
     measureLabelWidth: 150,
     title: null,
@@ -134,6 +134,9 @@ let discreteHeatMapPlotter = {
         }
 
         function generateCells() {
+            let strokeWidthRange = [0.5, boxHeight/2];
+            let outlierDomain = [1, 10];//TODO: Calculate instead of fixing
+            let outlierStrokeScale = d3.scaleLinear().domain(outlierDomain).range(strokeWidthRange);
             plotData.measures.forEach(measure => {
                 plotData.locations.forEach(location => {
                     plotData.months.forEach(month => {
@@ -145,7 +148,9 @@ let discreteHeatMapPlotter = {
                                     .datum(curr)
                                     .attr("class", "cell")
                             } else {
-                                allCells['$' + key] = graph.append("circle").attr("x", 0).attr("y", 0).attr("r", plotLayout.outlierRadius).attr("stroke-width", plotLayout.outlierStrokeWidth).attr("class", "cell").attr("fill", "steelblue")
+                                let strokeWidth = outlierStrokeScale(curr.outlierCount);
+                                let r = (boxHeight - strokeWidth)/2;
+                                allCells['$' + key] = graph.append("circle").attr("x", 0).attr("y", 0).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue")
                                     .datum(curr);
                             }
                             allCells['$' + key].on("click", onClickShow);
@@ -229,7 +234,12 @@ let discreteHeatMapPlotter = {
         plotData.groups.forEach((group, i) => {
             this.graphLabels.append("text").attr("x", 0).attr("y", (labelHeight / 2)).text(group).attr("text-anchor", "start").attr("alignment-baseline", "middle")
                 .attr("transform", "translate(" + graphWidth + ", " + i * labelHeight + ")").attr("fill", "black").attr("style", "font: 10px sans-serif");
-            this.graphLabels.append("rect").attr("x", 0).attr("y", i * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect");
+            this.graphLabels.append("rect").attr("x", 0).attr("y", i * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
         });
+        //Recalculate the svg height based on new number of groups
+        let graphHeight = numberOfMeasures * numberOfLocations * boxHeight + plotLayout.separatorHeight * plotData.groups.length;
+        this.graphHeight = graphHeight;
+        let svgHeight = graphHeight + plotLayout.timeLabelHeight;
+        this.svg.attr("height", svgHeight);
     }
 }

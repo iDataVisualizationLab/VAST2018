@@ -88,17 +88,20 @@ let myDataProcessor = {
         keys.forEach(key => {
             let hasOutlier = false;
             let outlierType = '';
+            let outlierCount = 0;
             for (let i = 0; i < nested['$' + key].length; i++) {
                 if(nested['$'+key][i]['isOutlier']===true){
                     hasOutlier=true;
                     outlierType += nested['$'+key][i]['outlierType'];
+                    outlierCount += 1;
                 }
             }
             nested['$' + key] = {
                 data: nested['$' + key],
                 average: d3.mean(nested['$' + key].map(d => d[COL_VALUE])),
                 hasOutlier: hasOutlier,
-                outlierType: outlierType
+                outlierType: outlierType,
+                outlierCount: outlierCount
             };
         });
         return nested;
