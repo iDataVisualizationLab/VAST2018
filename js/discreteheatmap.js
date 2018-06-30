@@ -14,7 +14,8 @@ let plotLayout = {
     outlierStrokeWidth: 2,
     measureLabelWidth: 150,
     title: null,
-    colorScales: d3.interpolateRdYlGn,
+    colorScales: d3.scaleLinear().domain([0, 0.1, 0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1])
+        .range(["#9dbee6","#afcae6","#c8dce6","#e6e6e6","#e6e6d8","#e6d49c","#e6b061","#e6852f","#e6531a","#e61e1a"]),
     groupByLocation: true,
     timeLabelHeight: 20
 };
@@ -24,6 +25,8 @@ let allRowLocations = {};
 let allLabels = {};
 let allLocations = {};
 let allColors = {};
+let allStreamArcs = {};
+let allStreamArcsData = {};
 let discreteHeatMapPlotter = {
     graph: null,
     svg: null,
@@ -187,6 +190,10 @@ let discreteHeatMapPlotter = {
             d3.select("body").on("click", onClickHide);
             return div;
         }
+
+        function generateStreamArcs(){
+
+        }
     },
     calculateRowPositions: function () {
         //Default outers and inners
@@ -213,7 +220,7 @@ let discreteHeatMapPlotter = {
         let keys = d3.keys(allRows);
         keys.forEach(key => {
             setInterval(function(){
-                allRows[key].attr("transform", "translate(0, "+ allRowLocations[key].y + ")");
+                allRows[key].transition().duration(1000).attr("transform", "translate(0, "+ allRowLocations[key].y + ")");
             });
         });
     },

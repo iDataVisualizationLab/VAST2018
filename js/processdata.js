@@ -147,7 +147,7 @@ let myDataProcessor = {
                     averageValues.push(averages['$' + key].average);
                 }
             });
-            scales["$" + measure] = d3.scaleLinear().domain(d3.extent(averageValues)).range([1, 0]);
+            scales["$" + measure] = d3.scaleLinear().domain(d3.extent(averageValues)).range([0, 1]);
         });
         return scales;
     },

@@ -38,14 +38,22 @@ function plotDiscreteHeatMap() {
 }
 
 function changeOrder() {
+    //TODO: Should separate this and calculate once only => then store.
+    calculateLocationCorrelations();
+    calculateMeasureCorrelations();
     let group = $("#groupSelect").val();
     $("#groupSelect").attr("disabled", true);
     if(group==='location'){
         plotLayout.groupByLocation = true;
+        let rankedGroups = rankBySimilarity(locationSimilarities);
+        plotData.locations = rankedGroups.travel();
         plotData.groups = plotData.locations;
+
     }
     if(group==='measure'){
         plotLayout.groupByLocation = false;
+        let rankedGroups = rankBySimilarity(measureSimilarities);
+        plotData.measures = rankedGroups.travel();
         plotData.groups = plotData.measures;
     }
     discreteHeatMapPlotter.calculateRowPositions();
