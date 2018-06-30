@@ -8,7 +8,8 @@ $(document).ready(() => {
 function dataHandler() {
     plotDiscreteHeatMap();
 }
-
+let rankedLocations = null;
+let rankedMeasures = null;
 function plotDiscreteHeatMap() {
     let locationData = [
         {name: "Kohsoom", stream: 1},
@@ -32,28 +33,31 @@ function plotDiscreteHeatMap() {
     plotData.measures.sort((a, b) => a.localeCompare(b));
     plotData.months = d3.range(0, myDataProcessor.getMonthNumber(), 1);
     plotData.data = myDataProcessor.getNestedByMeasureLocationMonth();
+    //TODO: This calculations is to be done only once and then stored.
+    calculateLocationCorrelations();
+    rankedLocations = rankBySimilarity(locationSimilarities);
+    calculateMeasureCorrelations();
+    rankedMeasures = rankBySimilarity(measureSimilarities);
+
+
     plotData.scales = myDataProcessor.getNestedScales();
     discreteHeatMapPlotter.plot("discreteHeatMapDiv");
     $("#groupSelect").attr("disabled", false);
 }
 
 function changeOrder() {
-    //TODO: Should separate this and calculate once only => then store.
-    calculateLocationCorrelations();
-    calculateMeasureCorrelations();
+
     let group = $("#groupSelect").val();
     $("#groupSelect").attr("disabled", true);
     if(group==='location'){
         plotLayout.groupByLocation = true;
-        let rankedGroups = rankBySimilarity(locationSimilarities);
-        plotData.locations = rankedGroups.travel();
+        plotData.locations = rankedLocations.travel();
         plotData.groups = plotData.locations;
 
     }
     if(group==='measure'){
         plotLayout.groupByLocation = false;
-        let rankedGroups = rankBySimilarity(measureSimilarities);
-        plotData.measures = rankedGroups.travel();
+        plotData.measures = rankedMeasures.travel();
         plotData.groups = plotData.measures;
     }
     discreteHeatMapPlotter.calculateRowPositions();
