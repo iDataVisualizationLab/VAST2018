@@ -7,8 +7,8 @@ let plotData = {
     groups: [],
 };
 let plotLayout = {
-    boxWidth: 8,
-    boxHeight: 8,
+    boxWidth: 6,
+    boxHeight: 6,
     separatorHeight: 2,
     outlierRadius: 1,
     outlierStrokeWidth: 2,
@@ -157,7 +157,7 @@ let discreteHeatMapPlotter = {
                             } else {
                                 let strokeWidth = outlierStrokeScale(curr.outlierCount);
                                 let r = (boxHeight - strokeWidth) / 2;
-                                allCells['$' + key] = row.append("circle").attr("cx", month * boxWidth + boxWidth / 2).attr("cy", boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue")
+                                allCells['$' + key] = row.append("circle").attr("cx", month * boxWidth + boxWidth / 2).attr("cy", boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue").attr("opacity", 0)
                                     .datum(curr);
                             }
                             allCells['$' + key].on("click", onClickShow);
@@ -246,5 +246,15 @@ let discreteHeatMapPlotter = {
         this.graphHeight = graphHeight;
         let svgHeight = graphHeight + plotLayout.timeLabelHeight;
         this.svg.attr("height", svgHeight);
+    },
+    /**
+    * @param {boolean}  value   true will display the outlier, false will not
+     */
+    toggleOutlier: function(value){
+        if(value===true){
+            this.graph.selectAll("circle").attr("opacity", 1e-6).transition().duration(1000).attr("opacity", 1.0);
+        }else{
+            this.graph.selectAll("circle").attr("opacity", 1.0).transition().duration(1000).attr("opacity", 1e-6);
+        }
     }
 }
