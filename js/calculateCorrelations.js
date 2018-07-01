@@ -18,20 +18,26 @@ function calculateLocationCorrelations() {
     });
     //Now for each pair of locations we will remove the pair if the data is not available.
     for (let i = 0; i < locations.length-1; i++) {
+        let location1 = locations[i];
         for (let j = i+1; j < locations.length; j++) {
-            let location1 = locations[i];
             let location2 = locations[j];
             //Copy the data
             let location1Data = allLocationData["$"+location1].slice();
             let location2Data = allLocationData["$"+location2].slice();
+
+            let removeIndex = [];
             for (let k = 0; k < location1Data.length; k++) {
-                //Remove the data element if neither one of them has data.
-                if(!location1Data[k] || ! location2Data[k]){
-                    location1Data.splice(k, 1);
-                    location2Data.splice(k, 1);
+                //Remove the data element if either one of them has data.
+                if(!location1Data[k] || !location2Data[k]){
+                    removeIndex.push(k);
                 }
             }
-            let corr = statistics.pearsonCorcoef(location1Data, location2Data);
+            for (let c = removeIndex.length -1; c >= 0; c--){
+                location1Data.splice(removeIndex[c],1);
+                location2Data.splice(removeIndex[c],1);
+            }
+
+            let corr= Math.abs(statistics.pearsonCorcoef(location1Data, location2Data)) * (location1Data.length/(227*106));
             locationSimilarities.push(new Similarity(location1, location2, Math.abs(corr)));
         }
     }
@@ -55,22 +61,34 @@ function calculateMeasureCorrelations() {
         });
         allMeasureData["$"+measure] = singleMeasureData;
     });
-    //Now for each pair of measures we will remove the pair if the data is not available.
+    //Now for each pair of measures calculate the similarities
     for (let i = 0; i < measures.length-1; i++) {
+        let measure1 = measures[i];
         for (let j = i+1; j < measures.length; j++) {
-            let measure1 = measures[i];
             let measure2 = measures[j];
             //Copy the data
             let measure1Data = allMeasureData["$"+measure1].slice();
             let measure2Data = allMeasureData["$"+measure2].slice();
+            let removeIndex = [];
+            let dissimilarityCounter = 0;
+            let similarityCounter = 0;
             for (let k = 0; k < measure1Data.length; k++) {
                 //Remove the data element if either one of them has data.
                 if(!measure1Data[k] || !measure2Data[k]){
-                    measure1Data.splice(k, 1);
-                    measure2Data.splice(k, 1);
+                    removeIndex.push(k);
                 }
+                // if(!measure1Data[k] && measure2Data[k] || measure1Data[k] && measure2Data[k]){
+                //     dissimilarityCounter += 1;
+                // }else{
+                //     similarityCounter +=1;
+                // }
             }
-            let corr = statistics.pearsonCorcoef(measure1Data, measure2Data);
+            for (let c = removeIndex.length -1; c >= 0; c--){
+                measure1Data.splice(removeIndex[c],1);
+                measure2Data.splice(removeIndex[c],1);
+            }
+            //Calculate the correlation - normalize by the number of points with data.
+            let corr= Math.abs(statistics.pearsonCorcoef(measure1Data, measure2Data)) * (measure1Data.length/(227*10));
             measureSimilarities.push(new Similarity(measure1, measure2,Math.abs(corr)));
         }
     }

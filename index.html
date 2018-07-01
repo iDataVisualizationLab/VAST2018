@@ -23,11 +23,19 @@
 </head>
 <body>
 <div>
-    Group by<select onchange="changeOrder()" id="groupSelect" disabled="true">
-    <option value="select" selected="true">please select</option>
-    <option value="location">location</option>
-    <option value="measure">measure</option>
-</select>
+    Group by
+    <select onchange="changeOrder()" id="groupSelect" disabled="true">
+        <option value="select" selected="true">please select</option>
+        <option value="location">location</option>
+        <option value="measure">measure</option>
+    </select>
+    Order by
+    <select onchange="changeOrder()" id="orderSelect" disabled="true">
+        <option value="select" selected="true">please select</option>
+        <option value="alphabetical">alphabetical</option>
+        <option value="similarity">similarity</option>
+    </select>
+    Toggle outlier <input type="checkbox" onchange="toggleOutlier()"></input
 </div>
 <div id="mapHeader">
     <svg id="mapHeaderSVG"></svg>

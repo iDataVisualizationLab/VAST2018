@@ -65,3 +65,6 @@ function changeOrder() {
     discreteHeatMapPlotter.generateGroupLabels();
     $("#groupSelect").attr("disabled", false);
 }
+function toggleOutlier(){
+
+}
