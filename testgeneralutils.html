@@ -8,6 +8,50 @@
 
 </head>
 <body>
+    <script>
+        var vis = d3.select("body").append("svg").attr("width", "400").attr("height", "400")
+            ;
+        // Added height and width so arc is visible
+        // vis.append("svg:defs").append("svg:marker")
+        //     .attr("id", "marker")
+        //     .attr("viewBox", "0 -5 10 10")
+        //     .attr("refX", 5)
+        //     .attr("markerWidth", 6)
+        //     .attr("markerHeight", 6)
+        //     .attr("orient", "auto")
+        //     .append("svg:path")
+        //     .attr("d", "M0,-5L10,0L0,5")
+        //     .attr("fill", "red")
+        //     .attr("markerUnits","strokeWidth");
 
+        function generateArc(container, id, startPoint, endPoint){
+            let swap = false;
+            if(startPoint.y > endPoint.y){
+                let temp = startPoint;
+                startPoint = endPoint;
+                endPoint = temp;
+                swap = true;
+            }
+            let radius = Math.sqrt(Math.pow(startPoint.x - endPoint.x, 2) +  Math.pow(startPoint.y - endPoint.y, 2))/2;
+            let arcStr = "M"+startPoint.x + " " + startPoint.y + " A" + (radius) + " " + (radius) +
+                    ", 0, 0, 1, " + endPoint.x + " " + endPoint.y;
+            let g = container.append("g").attr("transform", "translate(40, 40)");
+            g
+                .append("path")
+                .attr("id", id)
+                .attr("d", arcStr)
+                .attr("fill", "none")
+                .attr("stroke", 'black')
+                .attr("stroke-width", 0.3);
+            g
+                .append("text")
+                .append("textPath")
+                .attr("dominant-baseline", "central")
+                .attr("xlink:href", "#" + id).attr("startOffset", "50%").attr("font-size", 6)
+                .text(swap? "<":">");
+            return g;
+        }
+        generateArc(vis, "path1", {x: 0, y:40}, {x: 0, y:0});
+    </script>
 </body>
 </html>

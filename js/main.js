@@ -10,6 +10,16 @@ function dataHandler() {
 }
 let rankedLocations = null;
 let rankedMeasures = null;
+let streamInformation = [
+    {source: "Kannika", destination: "Chai", stream: 1},
+    {source: "Kannika", destination: "Busarakhan", stream: 1},
+    {source: "Kannika", destination: "Kohsoom", stream: 1},
+    {source: "Kannika", destination: "Boonsri", stream: 1},
+    {source: "Chai", destination: "Kohsoom", stream: 1},
+    {source: "Chai", destination: "Boonsri", stream: 1},
+    {source: "Sakda", destination: "Somchair", stream: 2},
+    {source: "Sakda", destination: "Achara", stream: 2},
+];
 let downStreamLocationData = [
     {name: "Kannika", stream: 1},
     {name: "Chai", stream: 1},
@@ -33,6 +43,7 @@ let streamAndDistanceLocationData = [
     {name: "Tansanee", stream: 3},
     {name: "Decha", stream: 4}];
 function plotDiscreteHeatMap() {
+    plotData.streamInformation = streamInformation;
     plotData.locations = myDataProcessor.getAllLocations();
     //Order alphabeticall
     plotData.locations.sort((a, b)=> a.localeCompare(b));
@@ -94,7 +105,11 @@ function changeGroupOrder() {
     discreteHeatMapPlotter.calculateRowPositions();
     discreteHeatMapPlotter.setRowPositions();
     discreteHeatMapPlotter.generateGroupLabels();
-
+    if(group==='location'){
+        discreteHeatMapPlotter.generateArcs();
+    }else{
+        discreteHeatMapPlotter.removeArcs();
+    }
     enableSelections();
 }
 

@@ -5,6 +5,7 @@ let plotData = {
     scales: null,
     data: [],
     groups: [],
+    streamInformation:[]
 };
 let plotLayout = {
     boxWidth: 6,
@@ -14,25 +15,22 @@ let plotLayout = {
     outlierStrokeWidth: 2,
     measureLabelWidth: 150,
     title: null,
-    colorScales: d3.scaleLinear().domain([0, 0.1, 0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1])
-        .range(["#9dbee6","#afcae6","#c8dce6","#e6e6e6","#e6e6d8","#e6d49c","#e6b061","#e6852f","#e6531a","#e61e1a"]),
+    colorScales: d3.scaleLinear().domain([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
+        .range(["#9dbee6", "#afcae6", "#c8dce6", "#e6e6e6", "#e6e6d8", "#e6d49c", "#e6b061", "#e6852f", "#e6531a", "#e61e1a"]),
     groupByLocation: true,
     timeLabelHeight: 20
 };
 let allCells = {};
 let allRows = {};
 let allRowLocations = {};
-let allLabels = {};
-let allLocations = {};
 let allColors = {};
-let allStreamArcs = {};
-let allStreamArcsData = {};
 let discreteHeatMapPlotter = {
     graph: null,
     svg: null,
     graphWidth: null,
     graphHeight: null,
     graphLabels: null,
+    arcs: null,
     plot: function (theDivId) {
         let boxWidth = plotLayout.boxWidth;
         let boxHeight = plotLayout.boxHeight;
@@ -65,6 +63,7 @@ let discreteHeatMapPlotter = {
         calculateColors();
         setColors();
         this.generateGroupLabels();
+        this.generateArcs();
 
         function calculateColors() {
             plotData.measures.forEach(measure => {
@@ -191,9 +190,7 @@ let discreteHeatMapPlotter = {
             return div;
         }
 
-        function generateStreamArcs(){
 
-        }
     },
     calculateRowPositions: function () {
         //Default outers and inners
@@ -206,7 +203,6 @@ let discreteHeatMapPlotter = {
         let innerNumber = inners.length;
         outers.forEach((outer, outerI) => {
             inners.forEach((inner, innerI) => {
-                //TODO: will need to change this if we have new way of calculating location.
                 let measure = plotLayout.groupByLocation ? inner : outer;
                 let location = plotLayout.groupByLocation ? outer : inner;
                 let rowKey = measure + "_" + location;
@@ -219,8 +215,8 @@ let discreteHeatMapPlotter = {
     setRowPositions: function () {
         let keys = d3.keys(allRows);
         keys.forEach(key => {
-            setInterval(function(){
-                allRows[key].transition().duration(1000).attr("transform", "translate(0, "+ allRowLocations[key].y + ")");
+            setInterval(function () {
+                allRows[key].transition().duration(1000).attr("transform", "translate(0, " + allRowLocations[key].y + ")");
             });
         });
     },
@@ -237,8 +233,9 @@ let discreteHeatMapPlotter = {
         let numberOfElementsInGroup = numberOfLocations * numberOfMeasures / plotData.groups.length;
         let labelHeight = numberOfElementsInGroup * boxHeight + plotLayout.separatorHeight;
         plotData.groups.forEach((group, i) => {
-            this.graphLabels.append("text").attr("x", 0).attr("y", (labelHeight / 2)).text(group).attr("text-anchor", "start").attr("alignment-baseline", "middle")
+            this.graphLabels.append("text").datum({key: group, value: {x: graphWidth, y: i * labelHeight + labelHeight/2}}).attr("x", 0).attr("y", (labelHeight / 2)).text(group).attr("text-anchor", "start").attr("alignment-baseline", "middle")
                 .attr("transform", "translate(" + graphWidth + ", " + i * labelHeight + ")").attr("fill", "black").attr("style", "font: 10px sans-serif");
+
             this.graphLabels.append("rect").attr("x", 0).attr("y", i * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
         });
         //Recalculate the svg height based on new number of groups
@@ -247,14 +244,86 @@ let discreteHeatMapPlotter = {
         let svgHeight = graphHeight + plotLayout.timeLabelHeight;
         this.svg.attr("height", svgHeight);
     },
+
     /**
-    * @param {boolean}  value   true will display the outlier, false will not
+     * toggleOutlier
+     * @param {boolean}  value   true will display the outlier, false will not
      */
-    toggleOutlier: function(value){
-        if(value===true){
+    toggleOutlier: function (value) {
+        if (value === true) {
             this.graph.selectAll("circle").attr("opacity", 1e-6).transition().duration(1000).attr("opacity", 1.0);
-        }else{
+        } else {
             this.graph.selectAll("circle").attr("opacity", 1.0).transition().duration(1000).attr("opacity", 1e-6);
         }
+    },
+    generateArcs: function(){
+        if (!this.arcs) {
+            this.arcs = this.graph.append("g");
+        }
+        this.arcs.selectAll("*").remove();
+        let locationPositions = this.graphLabels.selectAll("text").data();
+        let streamInformation = plotData.streamInformation;
+        let maxRadius = 0;
+        let minRadius = 0;
+        streamInformation.forEach(streamLocation=>{
+            let source = streamLocation.source;
+            let destination = streamLocation.destination;
+            let startPoint = locationPositions.filter(d=>d.key === source)[0].value;
+            let endPoint = locationPositions.filter(d=>d.key === destination)[0].value;
+            let radius = Math.sqrt(Math.pow(startPoint.x - endPoint.x, 2) +  Math.pow(startPoint.y - endPoint.y, 2))/2;
+            if(radius > maxRadius) maxRadius = radius;
+            if(radius < minRadius) minRadius = radius;
+        });
+        //let xRadiusScale = d3.scaleLinear().domain([minRadius, maxRadius]).range([plotLayout.measureLabelWidth/2, plotLayout.measureLabelWidth-8])
+        streamInformation.forEach(streamLocation =>{
+            let source = streamLocation.source;
+            let destination = streamLocation.destination;
+            let startPoint = locationPositions.filter(d=>d.key === source)[0].value;
+            let endPoint = locationPositions.filter(d=>d.key === destination)[0].value;
+            //let radius = Math.sqrt(Math.pow(startPoint.x - endPoint.x, 2) +  Math.pow(startPoint.y - endPoint.y, 2))/2;
+            //let xRadius = xRadiusScale(radius);
+            this.generateArc(this.arcs, source+destination, startPoint, endPoint);
+        });
+        //Adjust the graph width.
+        let svgWidth = this.graphWidth + Math.max(plotLayout.measureLabelWidth, maxRadius + 8);//8 is for the arrow
+        this.svg.attr("width", svgWidth);
+    },
+    /**
+     * generateArc
+     * @param {svg element} container The container that you will attach this arc
+     * @param {string}  id  ID of the arc to create
+     * @param {object{x, y}}  startPoint    The start point of the arc
+     * @param {object{x, y}}  endPoint  The end point of the arc
+     * @return {g}  g   group element which contains this arc
+     */
+    generateArc: function (container, id, startPoint, endPoint, xRadius) {
+        let swap = false;
+        if(startPoint.y > endPoint.y){
+            let temp = startPoint;
+            startPoint = endPoint;
+            endPoint = temp;
+            swap = true;
+        }
+        let radius = Math.sqrt(Math.pow(startPoint.x - endPoint.x, 2) +  Math.pow(startPoint.y - endPoint.y, 2))/2;
+        let arcStr = "M"+startPoint.x + " " + startPoint.y + " A" + (xRadius? xRadius: radius) + " " + (radius) +
+            ", 0, 0, 1, " + endPoint.x + " " + endPoint.y;
+        let g = container.append("g");
+        g.append("path")
+            .attr("id", id)
+            .attr("d", arcStr)
+            .attr("fill", "none")
+            .attr("stroke", 'black')
+            .attr("stroke-width", 0.3)
+            .attr("opacity", 0.6);
+        g.append("text")
+            .append("textPath")
+            .attr("dominant-baseline", "central")
+            .attr("xlink:href", "#" + id).attr("startOffset", "50%").attr("font-size", 6)
+            .attr("font-weight", "bold")
+            .text(swap? "<":">");
+        return g;
+    },
+    removeArcs: function(){
+        this.arcs.selectAll("*").remove();
     }
 }
