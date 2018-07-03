@@ -1,3 +1,4 @@
+const linePlotDiv = "linePlotDiv";
 let plotData = {
     measures: [],
     locations: [],
@@ -66,7 +67,7 @@ let discreteHeatMapPlotter = {
         setColors();
         this.generateGroupLabels();
         this.generateArcs();
-        d3.select("#linePlotDiv").style("left", (graphWidth + measureLabelWidth + 10)+ "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight)+"px").style("width", "600px").style("height", "300px");
+        d3.select("#"+linePlotDiv).style("left", (graphWidth + measureLabelWidth + 10)+ "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight)+"px").style("width", "600px").style("height", "300px");
 
         function calculateColors() {
             plotData.measures.forEach(measure => {
@@ -373,7 +374,7 @@ let discreteHeatMapPlotter = {
                 autoexpand: false
             }
         }
-        Plotly.plot("linePlotDiv", data, layout);
+        Plotly.plot(linePlotDiv, data, layout);
     }
 }
 let draggedLocation = null;
@@ -398,7 +399,7 @@ function rowDragged() {
 }
 
 function rowDragEnded() {
-    let linePlotDivBox = d3.select("#linePlotDiv").node().getBoundingClientRect();
+    let linePlotDivBox = d3.select("#"+linePlotDiv).node().getBoundingClientRect();
     let x = linePlotDivBox.x;
     let y = linePlotDivBox.y;
     let width = linePlotDivBox.width;
@@ -413,4 +414,22 @@ function rowDragEnded() {
     discreteHeatMapPlotter.clonedGroup.selectAll("*").attr("opacity", 1.0).transition().duration(1000).attr("opacity", 1e-6).remove();
     draggedLocation = null;
     draggedMeasure = null;
+    //If we haven't got the clear button, add it.
+    if(d3.select("#clearBtn").empty()){
+        addClearButton();
+    }
+}
+function createElementFromHTML(htmlString) {
+    var div = document.createElement('div');
+    div.innerHTML = htmlString.trim();
+    return div.firstChild;
+}
+function addClearButton(){
+    let htmlString = '<a id="clearBtn" rel="tooltip" class="modebar-btn" data-title="Clear" data-toggle="false" data-gravity="n"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z" transform="scale(0.8, 0.8)"/></svg></a>';
+    let theElm = createElementFromHTML(htmlString);
+    theElm.addEventListener('click', clearChart, false);
+    d3.select('[data-title="Download plot as a png"]').node().parentNode.insertBefore(theElm,d3.select('[data-title="Download plot as a png"]').node());
+}
+function clearChart(){
+    Plotly.purge(linePlotDiv);
 }
