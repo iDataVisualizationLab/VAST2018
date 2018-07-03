@@ -8,4 +8,5 @@
     z-index: 10;
     top: 10px;
     @import "https://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.css";
+    cursor: move;
 }
