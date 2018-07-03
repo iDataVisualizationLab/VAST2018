@@ -27,14 +27,6 @@ div.tooltip {
 .cell{
     cursor:pointer;
 }
-div.popup {
-    position: absolute;
-    border: 1px solid black;
-    border: 1px solid rgba(0,0,0, 1);
-    background-color: rgba(255,255,255, 1);
-    border-radius: 6px;
-    box-shadow: 5px 5px 5px #444;
-}
 #mapHeader{
     position: sticky;
     top: 0px;
@@ -43,4 +35,14 @@ div.popup {
 }
 #discreteHeatMapDiv{
     top: 100px;
+}
+#clonedGroup{
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    width: 10px;
+    height: 10px;
+    margin: 0px;
+    padding: 0px;
+    z-index: 100;
 }

@@ -15,7 +15,7 @@ let myDataProcessor = {
                 return d;
             });
             myDataProcessor.markOutliers();
-            //myDataProcessor.filterOutliers();
+            myDataProcessor.filterOutByMeasures(myDataProcessor.getChemWithFewMeasures(150));
             myDataProcessor.addMonthIndex();
             dataHandler();
 
@@ -41,6 +41,20 @@ let myDataProcessor = {
         let nestedByMonthIndex = d3.nest().key(d=>d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(this.data);
         let year = nestedByMonthIndex["$"+month][0][COL_SAMPLE_DATE].getFullYear();
         return year;
+    },
+    filterOutByMeasures: function(measures){
+        this.data = this.data.filter(d => !(measures.indexOf(d[COL_MEASURE]) >= 0));
+    },
+    getChemWithFewMeasures: function(n){
+        let nestedByMeasures = this.getNestedByMeasure();
+        let  keys = nestedByMeasures.keys();
+        let chemWithFewMeasures =[];
+        keys.forEach(measure=>{
+            if(nestedByMeasures["$"+measure].length < n){
+                chemWithFewMeasures.push(measure);
+            }
+        });
+        return chemWithFewMeasures;
     },
     markOutliers: function () {
         //Find all outliers for measure

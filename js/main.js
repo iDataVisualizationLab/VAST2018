@@ -3,6 +3,7 @@ function loadData() {
 }
 $(document).ready(() => {
     loadData(dataHandler);
+    d3.select("#linePlotDiv").call(d3.drag().on("start",linePlotDragStarted).on("drag", linePlotDragged).on("end", linePlotDragEnded));
 });
 
 function dataHandler() {
@@ -133,3 +134,23 @@ function toggleOutlier(){
     let displayOutlier = $("#outlierCheckbox").is(":checked");
     discreteHeatMapPlotter.toggleOutlier(displayOutlier);
 }
+let xOffset = 0;
+let yOffset = 0;
+
+function linePlotDragStarted() {
+    let obj = d3.select(this);
+    xOffset = d3.event.x - obj.node().getBoundingClientRect().x;
+    yOffset = d3.event.y - obj.node().getBoundingClientRect().y;
+}
+
+function linePlotDragged() {
+    let obj = d3.select(this);
+    let xCoord = d3.event.x - xOffset;
+    let yCoord = d3.event.y - yOffset;
+    obj.style("left", xCoord + "px");
+    obj.style("top", yCoord + "px");
+}
+
+function linePlotDragEnded() {
+}
+
