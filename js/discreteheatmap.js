@@ -144,9 +144,10 @@ let discreteHeatMapPlotter = {
         }
 
         function generateCells() {
-            let strokeWidthRange = [0.5, boxHeight / 2];
-            let outlierDomain = [1, 10];//TODO: Calculate instead of fixing
-            let outlierStrokeScale = d3.scaleLinear().domain(outlierDomain).range(strokeWidthRange);
+            let strokeWidthRange = [0.5, boxHeight / 3];
+            let measureCountDomain = [1, 10];//TODO: Calculate instead of fixing
+            let strokeScale = d3.scaleLinear().domain(measureCountDomain).range(strokeWidthRange);
+
             plotData.measures.forEach(measure => {
                 plotData.locations.forEach(location => {
                     let rowKey = measure + "_" + location;
@@ -156,11 +157,15 @@ let discreteHeatMapPlotter = {
                         let curr = plotData.data['$' + key];
                         if (curr) {
                             if (curr.hasOutlier === false) {
-                                allCells['$' + key] = row.append("rect").attr("x", month * boxWidth).attr("y", 0).attr("width", boxWidth).attr("height", boxHeight).attr("fill", "steelblue")
+                                let strokeWidth = strokeScale(curr.data.length);
+                                let w = boxWidth - strokeWidth;
+                                let h = boxHeight - strokeWidth;
+                                allCells['$' + key] = row.append("rect").attr("x", month * boxWidth).attr("y", 0).attr("width", w).attr("height", h).attr("fill", "steelblue")
+                                    .attr("stroke-width", strokeWidth).attr("stroke", "black").attr("stroke-opacity", 0.8)
                                     .datum(curr)
                                     .attr("class", "cell")
                             } else {
-                                let strokeWidth = outlierStrokeScale(curr.outlierCount);
+                                let strokeWidth = strokeScale(curr.outlierCount);
                                 let r = (boxHeight - strokeWidth) / 2;
                                 allCells['$' + key] = row.append("circle").attr("cx", month * boxWidth + boxWidth / 2).attr("cy", boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue").attr("opacity", 0)
                                     .datum(curr);
