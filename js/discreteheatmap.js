@@ -169,11 +169,10 @@ let discreteHeatMapPlotter = {
                         }
                     });
                     row.call(d3.drag()
-                        .on("start", rowDragstarted)
+                        .on("start", rowDragStarted)
                         .on("drag", rowDragged)
                         .on("end", rowDragEnded)
                         .subject(this.clonedGroup)
-                        .container(d3.select("#clonedGroup").node())
                     );
                     allRows['$' + rowKey] = row;
                 });
@@ -382,7 +381,7 @@ let discreteHeatMapPlotter = {
 }
 let draggedLocation = null;
 let draggedMeasure = null;
-function rowDragstarted() {
+function rowDragStarted() {
     let obj = d3.select(this);
     //Get the data
     let aCell = obj.select("rect")?obj.select("rect"):obj.select("circle");
@@ -390,7 +389,9 @@ function rowDragstarted() {
     draggedMeasure = aCell.datum().data[0].measure;
 
     cloneSelection(obj);
-    discreteHeatMapPlotter.clonedGroup.attr("transform", "translate("+(d3.event.x - discreteHeatMapPlotter.graphWidth/2)+","+d3.event.y+")").attr("opacity", 1e-6);
+    discreteHeatMapPlotter.clonedGroup
+        .style("display", "none") //Display "none" is to prevent it from hiding the underlining element that we can't click.
+        .attr("transform", "translate("+(d3.event.sourceEvent.clientX)+","+d3.event.sourceEvent.clientY+")");
 }
 function cloneSelection(selection) {
     let cloned = selection.html();
@@ -398,7 +399,7 @@ function cloneSelection(selection) {
     return cloned;
 }
 function rowDragged() {
-    discreteHeatMapPlotter.clonedGroup.attr("opacity", 1.0).attr("transform", "translate("+(d3.event.x - discreteHeatMapPlotter.graphWidth/2)+","+d3.event.y+")");
+    discreteHeatMapPlotter.clonedGroup.style("display", "block").attr("opacity", 1.0).attr("transform", "translate("+(d3.event.sourceEvent.clientX)+","+d3.event.sourceEvent.clientY+")");
 }
 
 function rowDragEnded() {
@@ -407,8 +408,8 @@ function rowDragEnded() {
     let y = linePlotDivBox.y;
     let width = linePlotDivBox.width;
     let height = linePlotDivBox.height;
-    let mouseX = d3.event.x;
-    let mouseY = d3.event.y;
+    let mouseX = d3.event.sourceEvent.clientX;
+    let mouseY = d3.event.sourceEvent.clientY;
     if(mouseX > x && mouseX < x + width && mouseY > y && mouseY < y+height){
         if(draggedLocation && draggedMeasure){
             discreteHeatMapPlotter.plotLineGraph(draggedLocation, draggedMeasure);

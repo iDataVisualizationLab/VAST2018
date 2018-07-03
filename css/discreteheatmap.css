@@ -44,6 +44,7 @@ div.tooltip {
     height: 10px;
     margin: 0px;
     padding: 0px;
+    overflow: visible;
     z-index: 100;
 }
 .floatingBox {
@@ -53,14 +54,7 @@ div.tooltip {
     background-color: rgba(255,255,255, 1);
     border-radius: 6px;
     box-shadow: 5px 5px 5px #444;
-    z-index: 10;
     top: 10px;
     cursor: move;
     padding: 5px;
-}
-#clockPetals{
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    z-index: 11;
 }
