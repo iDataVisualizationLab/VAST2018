@@ -1,9 +1,10 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings 2.csv", dataHandler);
 }
 $(document).ready(() => {
     loadData(dataHandler);
-    d3.select("#linePlotDiv").call(d3.drag().on("start",linePlotDragStarted).on("drag", linePlotDragged).on("end", linePlotDragEnded));
+    d3.select("#"+linePlotDiv).call(d3.drag().on("start",boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
+    d3.select("#"+mapDiv).call(d3.drag().on("start",boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
 });
 
 function dataHandler() {
@@ -137,13 +138,13 @@ function toggleOutlier(){
 let xOffset = 0;
 let yOffset = 0;
 
-function linePlotDragStarted() {
+function boxDragStarted() {
     let obj = d3.select(this);
     xOffset = d3.event.x - obj.node().getBoundingClientRect().x;
     yOffset = d3.event.y - obj.node().getBoundingClientRect().y;
 }
 
-function linePlotDragged() {
+function boxDragged() {
     let obj = d3.select(this);
     let xCoord = d3.event.x - xOffset;
     let yCoord = d3.event.y - yOffset;
@@ -151,5 +152,5 @@ function linePlotDragged() {
     obj.style("top", yCoord + "px");
 }
 
-function linePlotDragEnded() {
+function boxDragEnded() {
 }

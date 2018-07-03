@@ -1,4 +1,5 @@
 const linePlotDiv = "linePlotDiv";
+const mapDiv = "mapDiv";
 let plotData = {
     measures: [],
     locations: [],
@@ -68,6 +69,8 @@ let discreteHeatMapPlotter = {
         this.generateGroupLabels();
         this.generateArcs();
         d3.select("#"+linePlotDiv).style("left", (graphWidth + measureLabelWidth + 10)+ "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight)+"px").style("width", "600px").style("height", "300px");
+        d3.select("#"+mapDiv).style("left", (graphWidth + measureLabelWidth + 10)+ "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight + 320)+"px").style("width", "600px").style("height", "600px");
+
 
         function calculateColors() {
             plotData.measures.forEach(measure => {
@@ -425,10 +428,18 @@ function createElementFromHTML(htmlString) {
     return div.firstChild;
 }
 function addClearButton(){
-    let htmlString = '<a id="clearBtn" rel="tooltip" class="modebar-btn" data-title="Clear" data-toggle="false" data-gravity="n"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z" transform="scale(0.8, 0.8)"/></svg></a>';
+    let htmlString = '<a id="clearBtn" rel="tooltip" class="modebar-btn" data-title="Clear" data-toggle="false" data-gravity="n"><svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">\n' +
+        ' <g>\n' +
+        '  <title>Layer 1</title>\n' +
+        '  <path stroke-width="0" id="svg_2" d="m3.776302,16.901317c0,1.1 0.9,2 2,2l8,0c1.1,0 2,-0.9 2,-2l0,-12l-12,0l0,12zm2.46,-7.12l1.41,-1.41l2.13,2.12l2.12,-2.12l1.41,1.41l-2.12,2.12l2.12,2.12l-1.41,1.41l-2.12,-2.12l-2.12,2.12l-1.41,-1.41l2.12,-2.12l-2.13,-2.12zm7.04,-7.88l-1,-1l-5,0l-1,1l-3.5,0l0,2l14,0l0,-2l-3.5,0z"/>\n' +
+        ' </g>\n' +
+        '</svg></a>';
     let theElm = createElementFromHTML(htmlString);
     theElm.addEventListener('click', clearChart, false);
-    d3.select('[data-title="Download plot as a png"]').node().parentNode.insertBefore(theElm,d3.select('[data-title="Download plot as a png"]').node());
+    let downloadBtn = d3.select('[data-title="Download plot as a png"]');
+    if(!downloadBtn.empty()){
+        downloadBtn.node().parentNode.insertBefore(theElm,d3.select('[data-title="Download plot as a png"]').node());
+    }
 }
 function clearChart(){
     Plotly.purge(linePlotDiv);
