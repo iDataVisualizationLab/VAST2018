@@ -11,8 +11,8 @@ let plotData = {
 };
 let plotLayout = {
     boxWidth: 6,
-    boxHeight: 6,
-    separatorHeight: 2,
+    boxHeight: 1.8,
+    separatorHeight: 1,
     outlierRadius: 1,
     outlierStrokeWidth: 2,
     measureLabelWidth: 150,
@@ -144,7 +144,7 @@ let discreteHeatMapPlotter = {
         }
 
         function generateCells() {
-            let strokeWidthRange = [0.5, boxHeight / 3];
+            let strokeWidthRange = [0.1, boxHeight / 3];
             let measureCountDomain = [1, 10];//TODO: Calculate instead of fixing
             let strokeScale = d3.scaleLinear().domain(measureCountDomain).range(strokeWidthRange);
 
