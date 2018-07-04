@@ -154,3 +154,7 @@ function boxDragged() {
 
 function boxDragEnded() {
 }
+
+function changeHeight(){
+    discreteHeatMapPlotter.setHeight($("#boxHeightSlider").val());
+}

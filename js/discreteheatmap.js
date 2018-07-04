@@ -11,7 +11,7 @@ let plotData = {
 };
 let plotLayout = {
     boxWidth: 6,
-    boxHeight: 1.8,
+    boxHeight: 6,
     separatorHeight: 1,
     outlierRadius: 1,
     outlierStrokeWidth: 2,
@@ -35,19 +35,14 @@ let discreteHeatMapPlotter = {
     arcs: null,
     clonedGroup: null,
     plot: function (theDivId) {
-        let boxWidth = plotLayout.boxWidth;
-        let boxHeight = plotLayout.boxHeight;
         let numberOfMeasures = plotData.measures.length;
         let numberOfLocations = plotData.locations.length;
-        let numberOfMonths = plotData.months.length;
-        let measureLabelWidth = plotLayout.measureLabelWidth;
-        let timeLabelHeight = plotLayout.timeLabelHeight;
-        let graphWidth = numberOfMonths * boxWidth;
+        let graphWidth = plotData.months.length * plotLayout.boxWidth;
         this.graphWidth = graphWidth;
-        let graphHeight = numberOfMeasures * numberOfLocations * boxHeight + plotLayout.separatorHeight * plotData.groups.length;
+        let graphHeight = numberOfMeasures * numberOfLocations * plotLayout.boxHeight + plotLayout.separatorHeight * plotData.groups.length;
         this.graphHeight = graphHeight;
-        let svgWidth = graphWidth + measureLabelWidth;
-        let svgHeight = graphHeight + timeLabelHeight;
+        let svgWidth = graphWidth + plotLayout.measureLabelWidth;
+        let svgHeight = graphHeight + plotLayout.timeLabelHeight;
 
         //Process the graph
         let graphDiv = d3.select("#" + theDivId);
@@ -68,9 +63,8 @@ let discreteHeatMapPlotter = {
         setColors();
         this.generateGroupLabels();
         this.generateArcs();
-        d3.select("#"+linePlotDiv).style("left", (graphWidth + measureLabelWidth + 10)+ "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight)+"px").style("width", "600px").style("height", "300px");
-        d3.select("#"+mapDiv).style("left", (graphWidth + measureLabelWidth + 10)+ "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight + 320)+"px").style("width", "600px").style("height", "600px");
-
+        d3.select("#" + linePlotDiv).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight) + "px").style("width", "600px").style("height", "300px");
+        d3.select("#" + mapDiv).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight + 320) + "px").style("width", "600px").style("height", "600px");
 
         function calculateColors() {
             plotData.measures.forEach(measure => {
@@ -144,8 +138,8 @@ let discreteHeatMapPlotter = {
         }
 
         function generateCells() {
-            let strokeWidthRange = [0.1, boxHeight / 3];
-            let measureCountDomain = [1, 10];//TODO: Calculate instead of fixing
+            let strokeWidthRange = [0.1, plotLayout.boxHeight / 4];
+            let measureCountDomain = [1, 37];//Calculated from the data=>then fix this to improve performance.
             let strokeScale = d3.scaleLinear().domain(measureCountDomain).range(strokeWidthRange);
 
             plotData.measures.forEach(measure => {
@@ -158,16 +152,17 @@ let discreteHeatMapPlotter = {
                         if (curr) {
                             if (curr.hasOutlier === false) {
                                 let strokeWidth = strokeScale(curr.data.length);
-                                let w = boxWidth - strokeWidth;
-                                let h = boxHeight - strokeWidth;
-                                allCells['$' + key] = row.append("rect").attr("x", month * boxWidth).attr("y", 0).attr("width", w).attr("height", h).attr("fill", "steelblue")
+                                let w = plotLayout.boxWidth - strokeWidth;
+                                let h = plotLayout.boxHeight - strokeWidth;
+                                //Need to +strokeWidth/2 because the position is counted at the middle of the stroke
+                                allCells['$' + key] = row.append("rect").attr("x", month * plotLayout.boxWidth + strokeWidth / 2).attr("y", 0 + strokeWidth / 2).attr("width", w).attr("height", h).attr("fill", "steelblue")
                                     .attr("stroke-width", strokeWidth).attr("stroke", "black").attr("stroke-opacity", 0.8)
                                     .datum(curr)
                                     .attr("class", "cell")
                             } else {
                                 let strokeWidth = strokeScale(curr.outlierCount);
-                                let r = (boxHeight - strokeWidth) / 2;
-                                allCells['$' + key] = row.append("circle").attr("cx", month * boxWidth + boxWidth / 2).attr("cy", boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue").attr("opacity", 0)
+                                let r = (plotLayout.boxHeight - strokeWidth) / 2;
+                                allCells['$' + key] = row.append("circle").attr("cx", month * plotLayout.boxWidth + plotLayout.boxWidth / 2).attr("cy", plotLayout.boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue").attr("opacity", 0)
                                     .datum(curr);
                             }
                             allCells['$' + key].on("click", onClickShow);
@@ -206,8 +201,6 @@ let discreteHeatMapPlotter = {
             d3.select("body").on("click", onClickHide);
             return div;
         }
-
-
     },
     calculateRowPositions: function () {
         //Default outers and inners
@@ -382,41 +375,87 @@ let discreteHeatMapPlotter = {
             }
         }
         Plotly.plot(linePlotDiv, data, layout);
+    },
+    //Used this to get the data then remove it to improve performance.
+    getMaxMeasureCount: function () {
+        let maxCount = 1;
+        plotData.data.keys().forEach(key => {
+            let measureCount = plotData.data["$" + key].data.length;
+            if (maxCount < measureCount) maxCount = measureCount;
+        });
+        return maxCount;
+    },
+    setHeight: function (newBoxHeight) {
+        plotLayout.boxHeight = newBoxHeight;
+        let strokeWidthRange = [0.1, plotLayout.boxHeight / 4];
+        let measureCountDomain = [1, 37];//Calculated from the data=>then fix this to improve performance.
+        let strokeScale = d3.scaleLinear().domain(measureCountDomain).range(strokeWidthRange);
+        //Now set all the cells to lower height
+        plotData.measures.forEach(measure => {
+            plotData.locations.forEach(location => {
+                plotData.months.forEach(month => {
+                    let key = measure + "_" + location + "_" + month;
+                    let cell = allCells["$" + key];
+                    if (cell) {
+                        let curr = cell.datum();
+                        if (curr.hasOutlier === false) {
+                            let strokeWidth = strokeScale(curr.data.length);
+                            let w = plotLayout.boxWidth - strokeWidth;
+                            let h = plotLayout.boxHeight - strokeWidth;
+                            //Need to +strokeWidth/2 because the position is counted at the middle of the stroke
+                            cell.attr("x", month * plotLayout.boxWidth + strokeWidth / 2).attr("y", 0 + strokeWidth / 2).attr("width", w).attr("height", h)
+                                .attr("stroke-width", strokeWidth);
+                        } else {
+                            let strokeWidth = strokeScale(curr.outlierCount);
+                            let r = (plotLayout.boxHeight - strokeWidth) / 2;
+                            cell.attr("cx", month * plotLayout.boxWidth + plotLayout.boxWidth / 2).attr("cy", plotLayout.boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth);
+                        }
+                    }
+                });
+            });
+        });
+        this.calculateRowPositions();
+        this.setRowPositions();
+        this.generateGroupLabels();
+        this.generateArcs();
     }
 }
 let draggedLocation = null;
 let draggedMeasure = null;
+
 function rowDragStarted() {
     let obj = d3.select(this);
     //Get the data
-    let aCell = obj.select("rect")?obj.select("rect"):obj.select("circle");
+    let aCell = obj.select("rect") ? obj.select("rect") : obj.select("circle");
     draggedLocation = aCell.datum().data[0].location;
     draggedMeasure = aCell.datum().data[0].measure;
 
     cloneSelection(obj);
     discreteHeatMapPlotter.clonedGroup
         .style("display", "none") //Display "none" is to prevent it from hiding the underlining element that we can't click.
-        .attr("transform", "translate("+(d3.event.sourceEvent.clientX)+","+d3.event.sourceEvent.clientY+")");
+        .attr("transform", "translate(" + (d3.event.sourceEvent.clientX) + "," + d3.event.sourceEvent.clientY + ")");
 }
+
 function cloneSelection(selection) {
     let cloned = selection.html();
     discreteHeatMapPlotter.clonedGroup.html(cloned);
     return cloned;
 }
+
 function rowDragged() {
-    discreteHeatMapPlotter.clonedGroup.style("display", "block").attr("opacity", 1.0).attr("transform", "translate("+(d3.event.sourceEvent.clientX)+","+d3.event.sourceEvent.clientY+")");
+    discreteHeatMapPlotter.clonedGroup.style("display", "block").attr("opacity", 1.0).attr("transform", "translate(" + (d3.event.sourceEvent.clientX) + "," + d3.event.sourceEvent.clientY + ")");
 }
 
 function rowDragEnded() {
-    let linePlotDivBox = d3.select("#"+linePlotDiv).node().getBoundingClientRect();
+    let linePlotDivBox = d3.select("#" + linePlotDiv).node().getBoundingClientRect();
     let x = linePlotDivBox.x;
     let y = linePlotDivBox.y;
     let width = linePlotDivBox.width;
     let height = linePlotDivBox.height;
     let mouseX = d3.event.sourceEvent.clientX;
     let mouseY = d3.event.sourceEvent.clientY;
-    if(mouseX > x && mouseX < x + width && mouseY > y && mouseY < y+height){
-        if(draggedLocation && draggedMeasure){
+    if (mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height) {
+        if (draggedLocation && draggedMeasure) {
             discreteHeatMapPlotter.plotLineGraph(draggedLocation, draggedMeasure);
         }
     }
@@ -424,16 +463,18 @@ function rowDragEnded() {
     draggedLocation = null;
     draggedMeasure = null;
     //If we haven't got the clear button, add it.
-    if(d3.select("#clearBtn").empty()){
+    if (d3.select("#clearBtn").empty()) {
         addClearButton();
     }
 }
+
 function createElementFromHTML(htmlString) {
     var div = document.createElement('div');
     div.innerHTML = htmlString.trim();
     return div.firstChild;
 }
-function addClearButton(){
+
+function addClearButton() {
     let htmlString = '<a id="clearBtn" rel="tooltip" class="modebar-btn" data-title="Clear" data-toggle="false" data-gravity="n"><svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">\n' +
         ' <g>\n' +
         '  <title>Layer 1</title>\n' +
@@ -443,10 +484,11 @@ function addClearButton(){
     let theElm = createElementFromHTML(htmlString);
     theElm.addEventListener('click', clearChart, false);
     let downloadBtn = d3.select('[data-title="Download plot as a png"]');
-    if(!downloadBtn.empty()){
-        downloadBtn.node().parentNode.insertBefore(theElm,d3.select('[data-title="Download plot as a png"]').node());
+    if (!downloadBtn.empty()) {
+        downloadBtn.node().parentNode.insertBefore(theElm, d3.select('[data-title="Download plot as a png"]').node());
     }
 }
-function clearChart(){
+
+function clearChart() {
     Plotly.purge(linePlotDiv);
 }
