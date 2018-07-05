@@ -580,7 +580,7 @@ let discreteHeatMapPlotter = {
 }
 let draggedLocation = null;
 let draggedMeasure = null;
-
+let dragOffset;
 function rowDragStarted() {
     let obj = d3.select(this);
     //Get the data
@@ -590,11 +590,11 @@ function rowDragStarted() {
     }
     draggedLocation = aCell.datum().data[0].location;
     draggedMeasure = aCell.datum().data[0].measure;
-
+    dragOffset = d3.event.x;
     cloneSelection(obj);
     discreteHeatMapPlotter.clonedGroup
         .style("display", "none") //Display "none" is to prevent it from hiding the underlining element that we can't click.
-        .attr("transform", "translate(" + (d3.event.sourceEvent.clientX) + "," + d3.event.sourceEvent.clientY + ")");
+        .attr("transform", "translate(" + (d3.event.sourceEvent.clientX -  dragOffset) + "," + (d3.event.sourceEvent.clientY - plotLayout.boxHeight) + ")");
 }
 
 function cloneSelection(selection) {
@@ -604,7 +604,7 @@ function cloneSelection(selection) {
 }
 
 function rowDragged() {
-    discreteHeatMapPlotter.clonedGroup.style("display", "block").attr("opacity", 1.0).attr("transform", "translate(" + (d3.event.sourceEvent.clientX) + "," + d3.event.sourceEvent.clientY + ")");
+    discreteHeatMapPlotter.clonedGroup.style("display", "block").attr("opacity", 1.0).attr("transform", "translate(" + (d3.event.sourceEvent.clientX - dragOffset) + "," + (d3.event.sourceEvent.clientY - plotLayout.boxHeight) + ")");
 }
 
 function rowDragEnded() {
