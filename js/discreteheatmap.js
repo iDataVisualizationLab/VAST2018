@@ -1,5 +1,7 @@
 const linePlotDiv = "linePlotDiv";
 const mapDiv = "mapDiv";
+const linePlotContainer = "linePlotContainer";
+const mapDivContainer = "mapDivContainer";
 let plotData = {
     measures: [],
     locations: [],
@@ -57,7 +59,7 @@ let discreteHeatMapPlotter = {
         let graphWrapper = svg.append("g").attr("class", "graphWrapper").attr("transform", "translate(0, " + plotLayout.timeLabelHeight + ")");
         let graph = graphWrapper.append("g").attr("class", "graph");
         this.graph = graph;
-        var div = setupToolTip();
+        var detailDiv = setupDetailDiv();
         generateTimeLabels();
         //Generate cells
         generateCells();
@@ -69,8 +71,11 @@ let discreteHeatMapPlotter = {
         this.setDataOverviewsPostionsAndVisibility();
         this.generateGroupLabels();
         //this.generateArcs();
-        d3.select("#" + linePlotDiv).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight) + "px").style("width", "600px").style("height", "300px");
-        d3.select("#" + mapDiv).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight + 320) + "px").style("width", "600px").style("height", "600px");
+        //TODO: May need to remove this to a different place.
+        d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight) + "px");
+
+        d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight + 320) + "px");
+
 
         function calculateColors() {
             plotData.measures.forEach(measure => {
@@ -124,22 +129,27 @@ let discreteHeatMapPlotter = {
         }
 
         function onClickShow(d) {
-            div
-                .style("opacity", .9);
-            let msg = d.data[0][COL_MEASURE] + ' at ' + d.data[0][COL_LOCATION];
-            d.data.forEach(row => {
-                msg += "<br/>" + d3.timeFormat('%Y-%m-%d')(row[COL_SAMPLE_DATE]) + ":" + row[COL_VALUE];
-            });
-
-            div.html(msg)
-                .style("left", (d3.event.pageX) + "px")
+            detailDiv
+                .style("opacity", .9).style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY - 28) + "px");
+
+            let msg = d.data[0][COL_MEASURE] + ' at ' + d.data[0][COL_LOCATION];
+            msg += "<table style='width: 100%'>";
+            d.data.forEach(row => {
+                msg += "<tr>";
+                msg += "<td>" + d3.timeFormat('%Y-%m-%d')(row[COL_SAMPLE_DATE]) + "</td>";
+                msg += "<td><span style='text-align: right;'>" + row[COL_VALUE] + "</span></td>";
+                msg += "</tr>"
+            });
+            msg += "</table>"
+            detailDiv.select(".content").html(msg);
+
 
         }
 
         function onClickHide(d) {
             if (d3.event.target.classList[0] !== 'cell') {
-                div.style("opacity", 0);
+                detailDiv.style("opacity", 0);
             }
         }
 
@@ -197,15 +207,15 @@ let discreteHeatMapPlotter = {
             });
         }
 
-        function setupToolTip() {
-            var div = d3.select("div.tooltip");
-            if (div.node() == null) {
-                div = d3.select("body").append("div")
-                    .attr("class", "tooltip")
-                    .style("opacity", 0);
-            }
+        function setupDetailDiv() {
+            var detailDiv = d3.select("#detailDiv").style("opacity", 0);
+            // if (div.node() == null) {
+            //     div = d3.select("body").append("div")
+            //         .attr("class", "tooltip")
+            //         .style("opacity", 0);
+            // }
             d3.select("body").on("click", onClickHide);
-            return div;
+            return detailDiv;
         }
     },
     calculateRowPositions: function () {
@@ -344,7 +354,10 @@ let discreteHeatMapPlotter = {
                     {
                         x: x,
                         y: y,
-                        type: 'lines'
+                        type: 'lines',
+                        line: {
+                            width: 0.5
+                        }
                     }
                 ];
                 let aDiv = document.createElement("div");
@@ -571,7 +584,7 @@ let draggedMeasure = null;
 function rowDragStarted() {
     let obj = d3.select(this);
     //Get the data
-    let aCell = obj.select("rect") ? obj.select("rect") : obj.select("circle");
+    let aCell = obj.select("rect").empty() ? obj.select("circle") : obj.select("rect");
     if (!aCell) {
         return;
     }

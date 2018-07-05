@@ -63,7 +63,7 @@ let myDataProcessor = {
         keys.forEach(key => {
             let bound = statistics.normalBound(normalBounds['$' + key].map(d => d[COL_VALUE]));
             normalBounds['$' + key].forEach(d => {
-                if (d[COL_VALUE] >= bound[1] || d[COL_VALUE] < bound[0]) {
+                if ((bound[0]!=bound[1]) && (d[COL_VALUE] >= bound[1] || d[COL_VALUE] < bound[0]) ){
                     d["isOutlier"] = true;
                     if(d[COL_VALUE] > bound[1]){
                         d["outlierType"] = "upper";

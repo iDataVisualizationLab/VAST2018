@@ -1,15 +1,22 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings 2.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv", dataHandler);
 }
+
 $(document).ready(() => {
+    d3.select("#loaderDiv").style("display", "block").style("opacity", 1.0);
+    d3.select("#contentDiv").style("visibility", "hidden");
+
     loadData(dataHandler);
-    d3.select("#"+linePlotDiv).call(d3.drag().on("start",boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
-    d3.select("#"+mapDiv).call(d3.drag().on("start",boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
+    d3.select("#" + linePlotContainer).call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
+    d3.select("#" + mapDivContainer).call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
 });
 
 function dataHandler() {
     plotDiscreteHeatMap();
+    d3.select("#loaderDiv").style("opacity", 1.0).transition().duration(1000).style("opacity", 1e-6).style("display", "none");
+    d3.select("#contentDiv").style("visibility", "visible").style("opacity", 1e-6).transition().duration(5000).style("opacity", 1.0);
 }
+
 let rankedLocations = null;
 let rankedMeasures = null;
 let streamInformation = [
@@ -44,13 +51,14 @@ let streamAndDistanceLocationData = [
     {name: "Sakda", stream: 2},
     {name: "Tansanee", stream: 3},
     {name: "Decha", stream: 4}];
+
 function plotDiscreteHeatMap() {
     plotData.streamInformation = streamInformation;
     plotData.locations = myDataProcessor.getAllLocations();
     //Order alphabeticall
-    plotData.locations.sort((a, b)=> a.localeCompare(b));
+    plotData.locations.sort((a, b) => a.localeCompare(b));
     plotData.measures = myDataProcessor.getAllMeasures();
-    plotData.measures.sort((a, b)=> a.localeCompare(b));
+    plotData.measures.sort((a, b) => a.localeCompare(b));
     //By default group by location
     plotLayout.groupByLocation = true;
     plotData.groups = plotData.locations;
@@ -78,29 +86,29 @@ function changeGroupOrder() {
     let locationOrder = locationOrderSelect.val();
     disableSelections();
     //Measure order
-    if(measureOrder === "alphabetical"){
-        plotData.measures.sort((a, b)=>a.localeCompare(b));
+    if (measureOrder === "alphabetical") {
+        plotData.measures.sort((a, b) => a.localeCompare(b));
     }
-    if(measureOrder === "similarity"){
+    if (measureOrder === "similarity") {
         plotData.measures = rankedMeasures.travel();
     }
-    if(locationOrder === "alphabetical"){
-        plotData.locations = plotData.locations.sort((a, b)=> a.localeCompare(b));
+    if (locationOrder === "alphabetical") {
+        plotData.locations = plotData.locations.sort((a, b) => a.localeCompare(b));
     }
-    if(locationOrder==="similarity"){
+    if (locationOrder === "similarity") {
         plotData.locations = rankedLocations.travel();
     }
-    if(locationOrder==="downstream"){
-        plotData.locations = downStreamLocationData.map(d=>d.name);
+    if (locationOrder === "downstream") {
+        plotData.locations = downStreamLocationData.map(d => d.name);
     }
-    if(locationOrder==="streamanddistance"){
-        plotData.locations = streamAndDistanceLocationData.map(d=>d.name);
+    if (locationOrder === "streamanddistance") {
+        plotData.locations = streamAndDistanceLocationData.map(d => d.name);
     }
-    if(group==='location'){
+    if (group === 'location') {
         plotLayout.groupByLocation = true;
         plotData.groups = plotData.locations;
     }
-    if(group==='measure'){
+    if (group === 'measure') {
         plotLayout.groupByLocation = false;
         plotData.groups = plotData.measures;
     }
@@ -120,42 +128,50 @@ function changeGroupOrder() {
  * toggleSelections used to toggle the selections
  * @param {bool}    value   true to disable all selections, false to enable
  */
-function toggleSelections(value){
+function toggleSelections(value) {
     $("#groupSelect").attr("disabled", value);
     $("#locationOrderSelect").attr("disabled", value);
     $("#measureOrderSelect").attr("disabled", value);
     $("#outlierCheckbox").attr("disabled", value);
 }
-function disableSelections(){
+
+function disableSelections() {
     toggleSelections(true);
 }
-function enableSelections(){
+
+function enableSelections() {
     toggleSelections(false);
 }
-function toggleOutlier(){
+
+function toggleOutlier() {
     let displayOutlier = $("#outlierCheckbox").is(":checked");
     discreteHeatMapPlotter.toggleOutlier(displayOutlier);
 }
+
 let xOffset = 0;
 let yOffset = 0;
 
 function boxDragStarted() {
+
     let obj = d3.select(this);
     xOffset = d3.event.x - obj.node().getBoundingClientRect().x;
     yOffset = d3.event.y - obj.node().getBoundingClientRect().y;
+
 }
 
 function boxDragged() {
+
     let obj = d3.select(this);
     let xCoord = d3.event.x - xOffset;
     let yCoord = d3.event.y - yOffset;
     obj.style("left", xCoord + "px");
     obj.style("top", yCoord + "px");
+
 }
 
 function boxDragEnded() {
 }
 
-function changeHeight(){
+function changeHeight() {
     discreteHeatMapPlotter.setHeight($("#boxHeightSlider").val());
 }
