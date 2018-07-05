@@ -2,6 +2,7 @@ const linePlotDiv = "linePlotDiv";
 const mapDiv = "mapDiv";
 const linePlotContainer = "linePlotContainer";
 const mapDivContainer = "mapDivContainer";
+const controlPanel = "controlPanel";
 let plotData = {
     measures: [],
     locations: [],
@@ -17,7 +18,7 @@ let plotLayout = {
     separatorHeight: 1,
     outlierRadius: 1,
     outlierStrokeWidth: 2,
-    measureLabelWidth: 150,
+    measureLabelWidth: 160,
     title: null,
     colorScales: d3.scaleLinear().domain([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
         .range(["#9dbee6", "#afcae6", "#c8dce6", "#e6e6e6", "#e6e6d8", "#e6d49c", "#e6b061", "#e6852f", "#e6531a", "#e61e1a"]).interpolate(d3.interpolateHsl),
@@ -56,7 +57,7 @@ let discreteHeatMapPlotter = {
         let svg = graphDiv.append("svg").attr("width", svgWidth).attr("height", svgHeight);
         this.svg = svg;
         this.clonedGroup = d3.select("body").append("svg").attr("id", "clonedGroup").attr("overflow", "visible").append("g");
-        let graphWrapper = svg.append("g").attr("class", "graphWrapper").attr("transform", "translate(0, " + plotLayout.timeLabelHeight + ")");
+        let graphWrapper = svg.append("g").attr("class", "graphWrapper").attr("transform", "translate(0, 0)");
         let graph = graphWrapper.append("g").attr("class", "graph");
         this.graph = graph;
         var detailDiv = setupDetailDiv();
@@ -72,9 +73,11 @@ let discreteHeatMapPlotter = {
         this.generateGroupLabels();
         //this.generateArcs();
         //TODO: May need to remove this to a different place.
-        d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight) + "px");
+        d3.select("#" + controlPanel).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight+15) + "px");//+10 is for the default top margin
+        d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px");//120 is the height of the control panel
+        d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 +15) + "px");//320 is the height of the line plot div
 
-        d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight + 320) + "px");
+
 
 
         function calculateColors() {
@@ -134,7 +137,7 @@ let discreteHeatMapPlotter = {
                 .style("top", (d3.event.pageY - 28) + "px");
 
             let msg = d.data[0][COL_MEASURE] + ' at ' + d.data[0][COL_LOCATION];
-            msg += "<table style='width: 100%'>";
+            msg += "<table style='width: 100%; margin-top: 5px;'>";
             d.data.forEach(row => {
                 msg += "<tr>";
                 msg += "<td>" + d3.timeFormat('%Y-%m-%d')(row[COL_SAMPLE_DATE]) + "</td>";
@@ -304,7 +307,19 @@ let discreteHeatMapPlotter = {
 
             groups.forEach((group) => {
                 var layout = {
-                    title: group,
+                    title: '',
+                    annotations: [
+                        {
+                            x: 0.5,
+                            y: 1.0,
+                            showarrow: false,
+                            text: group,
+                            xref: "paper",
+                            yref: "paper",
+                            font:{
+                                size: 10
+                            }
+                        }],
                     titlefont: {
                         size: 8,
                         color: '#7f7f7f'
@@ -331,7 +346,7 @@ let discreteHeatMapPlotter = {
                     margin: {
                         l: 0,
                         r: 0,
-                        t: 15,
+                        t: 0,
                         b: 0,
                         pad: 0,
                         autoexpand: false

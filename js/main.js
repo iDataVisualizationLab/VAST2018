@@ -7,8 +7,7 @@ $(document).ready(() => {
     d3.select("#contentDiv").style("visibility", "hidden");
 
     loadData(dataHandler);
-    d3.select("#" + linePlotContainer).call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
-    d3.select("#" + mapDivContainer).call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
+    d3.selectAll(".floatingBox").call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
 });
 
 function dataHandler() {
