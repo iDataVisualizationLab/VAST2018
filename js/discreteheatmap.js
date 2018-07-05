@@ -18,7 +18,9 @@ let plotLayout = {
     measureLabelWidth: 150,
     title: null,
     colorScales: d3.scaleLinear().domain([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
-        .range(["#9dbee6", "#afcae6", "#c8dce6", "#e6e6e6", "#e6e6d8", "#e6d49c", "#e6b061", "#e6852f", "#e6531a", "#e61e1a"]),
+        .range(["#9dbee6", "#afcae6", "#c8dce6", "#e6e6e6", "#e6e6d8", "#e6d49c", "#e6b061", "#e6852f", "#e6531a", "#e61e1a"]).interpolate(d3.interpolateHsl),
+    // colorScales: d3.scaleLinear().domain([0, 0.03, 0.06, 0.15, 0.3, 0.5, 0.7, 0.85, 0.94, 0.97, 1])
+    //     .range(["#9dbee6", "#afcae6", "#c8dce6", "#e6e6e6", "#e6e6d8", "#e6d49c", "#e6b061", "#e6852f", "#e6531a", "#e61e1a"]).interpolate(d3.interpolateHsl),
     groupByLocation: true,
     timeLabelHeight: 20
 };
@@ -32,8 +34,11 @@ let discreteHeatMapPlotter = {
     graphWidth: null,
     graphHeight: null,
     graphLabels: null,
+    locationOverviews: null,
+    measureOverviews: null,
     arcs: null,
     clonedGroup: null,
+    dataOverviews: null,
     plot: function (theDivId) {
         let numberOfMeasures = plotData.measures.length;
         let numberOfLocations = plotData.locations.length;
@@ -43,7 +48,6 @@ let discreteHeatMapPlotter = {
         this.graphHeight = graphHeight;
         let svgWidth = graphWidth + plotLayout.measureLabelWidth;
         let svgHeight = graphHeight + plotLayout.timeLabelHeight;
-
         //Process the graph
         let graphDiv = d3.select("#" + theDivId);
         graphDiv.selectAll("*").remove();
@@ -61,8 +65,10 @@ let discreteHeatMapPlotter = {
         this.setRowPositions();
         calculateColors();
         setColors();
+        this.generateDataOverviews();
+        this.setDataOverviewsPostionsAndVisibility();
         this.generateGroupLabels();
-        this.generateArcs();
+        //this.generateArcs();
         d3.select("#" + linePlotDiv).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight) + "px").style("width", "600px").style("height", "300px");
         d3.select("#" + mapDiv).style("left", (graphWidth + plotLayout.measureLabelWidth + 10) + "px").style("top", (this.svg.node().getBoundingClientRect().y + plotLayout.timeLabelHeight + 320) + "px").style("width", "600px").style("height", "600px");
 
@@ -80,20 +86,20 @@ let discreteHeatMapPlotter = {
                                     fill: plotLayout.colorScales(measureScale(d.average))
                                 };
                             } else {
-                                let strokeColor = null;
-                                let fillColor = null;
-                                if (d.outlierType.indexOf("lower") >= 0) {
-                                    fillColor = 'white';
-                                    strokeColor = 'green';//1 for green
-                                }
-                                if (d.outlierType.indexOf("upper") >= 0) {
-                                    fillColor = 'white';
-                                    strokeColor = 'black';
-                                }
-                                if (d.outlierType.indexOf("lower") >= 0 && d.outlierType.indexOf("upper") >= 0) {
-                                    fillColor = 'green';
-                                    strokeColor = 'black';
-                                }
+                                let strokeColor = "black";
+                                let fillColor = "red";
+                                // if (d.outlierType.indexOf("lower") >= 0) {
+                                //     fillColor = 'red';
+                                //     strokeColor = 'black';//1 for green
+                                // }
+                                // if (d.outlierType.indexOf("upper") >= 0) {
+                                //     fillColor = 'red';
+                                //     strokeColor = 'black';
+                                // }
+                                // if (d.outlierType.indexOf("lower") >= 0 && d.outlierType.indexOf("upper") >= 0) {
+                                //     fillColor = 'red';
+                                //     strokeColor = 'black';
+                                // }
                                 allColors['$' + key] = {
                                     fill: fillColor,
                                     stroke: strokeColor
@@ -162,7 +168,7 @@ let discreteHeatMapPlotter = {
                             } else {
                                 let strokeWidth = strokeScale(curr.outlierCount);
                                 let r = (plotLayout.boxHeight - strokeWidth) / 2;
-                                allCells['$' + key] = row.append("circle").attr("cx", month * plotLayout.boxWidth + plotLayout.boxWidth / 2).attr("cy", plotLayout.boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue").attr("opacity", 0)
+                                allCells['$' + key] = row.append("circle").attr("cx", month * plotLayout.boxWidth + plotLayout.boxWidth / 2).attr("cy", plotLayout.boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue")
                                     .datum(curr);
                             }
                             allCells['$' + key].on("click", onClickShow);
@@ -227,11 +233,10 @@ let discreteHeatMapPlotter = {
         keys.forEach(key => {
             setInterval(function () {
                 allRows[key].transition().duration(1000).attr("transform", "translate(0, " + allRowLocations[key].y + ")");
-                allRows[key].attr("initial-x", 0);
-                allRows[key].attr("initial-y", allRowLocations[key].y);
             });
         });
     },
+
     generateGroupLabels: function () {
         if (!this.graphLabels) {
             this.graphLabels = this.graph.append("g");
@@ -245,21 +250,141 @@ let discreteHeatMapPlotter = {
         let numberOfElementsInGroup = numberOfLocations * numberOfMeasures / plotData.groups.length;
         let labelHeight = numberOfElementsInGroup * boxHeight + plotLayout.separatorHeight;
         plotData.groups.forEach((group, i) => {
-            this.graphLabels.append("text").datum({
-                key: group,
-                value: {x: graphWidth, y: i * labelHeight + labelHeight / 2}
-            }).attr("x", 0).attr("y", (labelHeight / 2)).text(group).attr("text-anchor", "start").attr("alignment-baseline", "middle")
-                .attr("transform", "translate(" + graphWidth + ", " + i * labelHeight + ")").attr("fill", "black").attr("style", "font: 10px sans-serif");
+            // this.graphLabels.append("text").datum({
+            //     key: group,
+            //     value: {x: graphWidth, y: i * labelHeight + labelHeight / 2}
+            // }).attr("x", 0).attr("y", (labelHeight / 2)).text(group).attr("text-anchor", "start").attr("alignment-baseline", "middle")
+            //     .attr("transform", "translate(" + graphWidth + ", " + i * labelHeight + ")").attr("fill", "black").attr("style", "font: 10px sans-serif");
 
             this.graphLabels.append("rect").attr("x", 0).attr("y", i * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
         });
+        //Print the last line
+        this.graphLabels.append("rect").attr("x", 0).attr("y", plotData.groups.length * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
         //Recalculate the svg height based on new number of groups
-        let graphHeight = numberOfMeasures * numberOfLocations * boxHeight + plotLayout.separatorHeight * plotData.groups.length;
+        let graphHeight = numberOfMeasures * numberOfLocations * boxHeight + plotLayout.separatorHeight * (plotData.groups.length + 1);
         this.graphHeight = graphHeight;
         let svgHeight = graphHeight + plotLayout.timeLabelHeight;
         this.svg.attr("height", svgHeight);
     },
+    generateDataOverviews: function () {
+        if (!discreteHeatMapPlotter.locationOverviews) {
+            discreteHeatMapPlotter.locationOverviews = {};
+            discreteHeatMapPlotter.measureOverviews = {};
+            //Also need to remove all the existing group overviews (if there is)
+            discreteHeatMapPlotter.graph.selectAll(".overview").remove();
+        } else {
+            return;
+        }
+        let locationData = myDataProcessor.getOverviewByLocationMonth();
+        let measureData = myDataProcessor.getOverviewByMeasureMonth();
+        generateOverviewForGroup(locationData, "location");
+        generateOverviewForGroup(measureData, "measure");
 
+        //Generate for the Location
+        function generateOverviewForGroup(overviewData, groupBy) {
+            var x = plotData.months;
+
+            let numberOfLocations = plotData.locations.length;
+            let numberOfMeasures = plotData.measures.length;
+            let boxHeight = plotLayout.boxHeight;
+            let overviewWidth = plotLayout.measureLabelWidth;
+            let groups = (groupBy === "location") ? plotData.locations : plotData.measures;
+            let numberOfElementsInGroup = numberOfLocations * numberOfMeasures / groups.length;
+            let groupHeight = numberOfElementsInGroup * boxHeight + plotLayout.separatorHeight;
+
+            groups.forEach((group) => {
+                var layout = {
+                    title: group,
+                    titlefont: {
+                        size: 8,
+                        color: '#7f7f7f'
+                    },
+                    displayModeBar: false,
+                    xaxis: {
+                        autorange: true,
+                        showgrid: false,
+                        zeroline: false,
+                        showline: false,
+                        autotick: true,
+                        ticks: '',
+                        showticklabels: false
+                    },
+                    yaxis: {
+                        autorange: true,
+                        showgrid: false,
+                        zeroline: false,
+                        showline: false,
+                        autotick: true,
+                        ticks: '',
+                        showticklabels: false
+                    },
+                    margin: {
+                        l: 0,
+                        r: 0,
+                        t: 15,
+                        b: 0,
+                        pad: 0,
+                        autoexpand: false
+                    },
+                    paper_bgcolor: 'rgb(233, 233, 233)',
+                    plot_bgcolor: 'rgb(233, 233, 233)'
+                };
+                let overview = discreteHeatMapPlotter.graph.append("image").attr("x", 0).attr("y", plotLayout.separatorHeight)
+                    .attr("id", "overview" + groupBy + group).attr("width", overviewWidth).attr("height", groupHeight - plotLayout.separatorHeight)
+                    .attr("opacity", 0)
+                    .attr("class", "overview");
+                if (groupBy === 'location') {
+                    discreteHeatMapPlotter.locationOverviews["$" + "overview" + group] = overview;
+                } else {
+                    discreteHeatMapPlotter.measureOverviews["$" + "overview" + group] = overview;
+                }
+
+                let y = overviewData["$" + group];
+                let overviewPlotData = [
+                    {
+                        x: x,
+                        y: y,
+                        type: 'lines'
+                    }
+                ];
+                let aDiv = document.createElement("div");
+                Plotly.plot(aDiv, overviewPlotData, layout).then(
+                    function (gd) {
+                        Plotly.toImage(gd, {
+                            format: 'svg',
+                            width: overviewWidth,
+                            height: groupHeight
+                        }).then(function (svgData) {
+                            overview.attr("xlink:href", svgData);
+                        });
+                    }
+                );
+            });
+        }
+    },
+    setDataOverviewsPostionsAndVisibility: function () {
+        let groupOverviews = (plotLayout.groupByLocation) ? this.locationOverviews : this.measureOverviews;
+        let notGroupOverviews = (plotLayout.groupByLocation) ? this.measureOverviews : this.locationOverviews;
+        d3.values(notGroupOverviews).forEach(overview => {
+            overview.attr("opacity", 0);
+        });
+        d3.values(groupOverviews).forEach(overview => {
+            overview.attr("opacity", 1);
+        });
+
+        let numberOfLocations = plotData.locations.length;
+        let numberOfMeasures = plotData.measures.length;
+        let boxHeight = plotLayout.boxHeight;
+        let graphWidth = this.graphWidth;
+        let numberOfElementsInGroup = numberOfLocations * numberOfMeasures / plotData.groups.length;
+        let groupHeight = numberOfElementsInGroup * boxHeight + plotLayout.separatorHeight;
+
+        //Change position
+        plotData.groups.forEach((group, i) => {
+            let theGraph = groupOverviews["$" + "overview" + group];
+            theGraph.attr("transform", "translate(" + graphWidth + ", " + i * groupHeight + ")");
+        });
+    },
     /**
      * toggleOutlier
      * @param {boolean}  value   true will display the outlier, false will not
@@ -289,7 +414,8 @@ let discreteHeatMapPlotter = {
             if (radius > maxRadius) maxRadius = radius;
             if (radius < minRadius) minRadius = radius;
         });
-        let xRadiusScale = d3.scaleLinear().domain([minRadius, maxRadius]).range([plotLayout.measureLabelWidth + 8, 2 * plotLayout.measureLabelWidth - 8])
+        let xRadiusScale = d3.scaleLinear().domain([minRadius, maxRadius]).range([plotLayout.measureLabelWidth / 4 + 8, 2 * plotLayout.measureLabelWidth - 8])
+
         streamInformation.forEach(streamLocation => {
             let source = streamLocation.source;
             let destination = streamLocation.destination;
@@ -297,7 +423,7 @@ let discreteHeatMapPlotter = {
             let endPoint = locationPositions.filter(d => d.key === destination)[0].value;
             let radius = Math.sqrt(Math.pow(startPoint.x - endPoint.x, 2) + Math.pow(startPoint.y - endPoint.y, 2)) / 2;
             let xRadius = xRadiusScale(radius);
-            this.generateArc(this.arcs, source + destination, startPoint, endPoint);
+            this.generateArc(this.arcs, source + destination, startPoint, endPoint, radius, xRadius);
         });
         //Adjust the graph width.
         let svgWidth = this.graphWidth + Math.max(plotLayout.measureLabelWidth, maxRadius + 8);//8 is for the arrow
@@ -311,7 +437,7 @@ let discreteHeatMapPlotter = {
      * @param {object{x, y}}  endPoint  The end point of the arc
      * @return {g}  g   group element which contains this arc
      */
-    generateArc: function (container, id, startPoint, endPoint, xRadius) {
+    generateArc: function (container, id, startPoint, endPoint, radius, xRadius) {
         let swap = false;
         if (startPoint.y > endPoint.y) {
             let temp = startPoint;
@@ -319,9 +445,10 @@ let discreteHeatMapPlotter = {
             endPoint = temp;
             swap = true;
         }
-        let radius = Math.sqrt(Math.pow(startPoint.x - endPoint.x, 2) + Math.pow(startPoint.y - endPoint.y, 2)) / 2;
-        let arcStr = "M" + startPoint.x + " " + startPoint.y + " A" + (xRadius ? xRadius : radius) + " " + (radius) +
-            ", 0, 0, 1, " + endPoint.x + " " + endPoint.y;
+        // let arcStr = "M" + startPoint.x + "," + startPoint.y + " C" + (startPoint.x+xRadius) + "," + (startPoint.y) +
+        //     " " + (endPoint.x + xRadius) + "," + (endPoint.y) + " "+ endPoint.x + "," + endPoint.y;
+        let arcStr = "M" + startPoint.x + "," + startPoint.y + " Q" + (startPoint.x + xRadius) + "," + (startPoint.y + radius) +
+            " " + endPoint.x + "," + endPoint.y;
         let g = container.append("g");
         g.append("path")
             .attr("id", id)
@@ -349,15 +476,23 @@ let discreteHeatMapPlotter = {
             x: x,
             y: y,
             name: location + "-" + measure,
-            mode: 'lines+markers'
+            mode: 'lines+markers',
+            line: {
+                width: 0.3
+            },
+            marker: {
+                opacity: 0.3,
+                size: 4
+            },
+            connectgaps: false
         }];
         var layout = {
             title: "Line graph view",
             xaxis: {
-                title: "Time"
+                title: "time"
             },
             yaxis: {
-                title: "Measure"
+                title: "value"
             },
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor: 'rgba(0,0,0,0)',
@@ -372,21 +507,24 @@ let discreteHeatMapPlotter = {
                 b: 50,
                 pad: 0,
                 autoexpand: false
-            }
+            },
+            showlegend: true
         }
         Plotly.plot(linePlotDiv, data, layout);
+
     },
     //Used this to get the data then remove it to improve performance.
-    getMaxMeasureCount: function () {
-        let maxCount = 1;
-        plotData.data.keys().forEach(key => {
-            let measureCount = plotData.data["$" + key].data.length;
-            if (maxCount < measureCount) maxCount = measureCount;
-        });
-        return maxCount;
-    },
+    // getMaxMeasureCount: function () {
+    //     let maxCount = 1;
+    //     plotData.data.keys().forEach(key => {
+    //         let measureCount = plotData.data["$" + key].data.length;
+    //         if (maxCount < measureCount) maxCount = measureCount;
+    //     });
+    //     return maxCount;
+    // },
     setHeight: function (newBoxHeight) {
         plotLayout.boxHeight = newBoxHeight;
+        //plotLayout.boxWidth = newBoxHeight;
         let strokeWidthRange = [0.1, plotLayout.boxHeight / 4];
         let measureCountDomain = [1, 37];//Calculated from the data=>then fix this to improve performance.
         let strokeScale = d3.scaleLinear().domain(measureCountDomain).range(strokeWidthRange);
@@ -416,9 +554,16 @@ let discreteHeatMapPlotter = {
         });
         this.calculateRowPositions();
         this.setRowPositions();
+        //Need to replot the graph overview (since size changes).
+        this.measureOverviews = null;
+        this.locationOverviews = null;
+        this.generateDataOverviews();
+        this.setDataOverviewsPostionsAndVisibility();
         this.generateGroupLabels();
-        this.generateArcs();
+        this.setDataOverviewsPostionsAndVisibility();
+        //this.generateArcs();
     }
+
 }
 let draggedLocation = null;
 let draggedMeasure = null;
@@ -427,6 +572,9 @@ function rowDragStarted() {
     let obj = d3.select(this);
     //Get the data
     let aCell = obj.select("rect") ? obj.select("rect") : obj.select("circle");
+    if (!aCell) {
+        return;
+    }
     draggedLocation = aCell.datum().data[0].location;
     draggedMeasure = aCell.datum().data[0].measure;
 

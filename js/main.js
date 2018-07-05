@@ -106,12 +106,13 @@ function changeGroupOrder() {
     }
     discreteHeatMapPlotter.calculateRowPositions();
     discreteHeatMapPlotter.setRowPositions();
+    discreteHeatMapPlotter.setDataOverviewsPostionsAndVisibility();
     discreteHeatMapPlotter.generateGroupLabels();
-    if(group==='location'){
-        discreteHeatMapPlotter.generateArcs();
-    }else{
-        discreteHeatMapPlotter.removeArcs();
-    }
+    // if(group==='location'){
+    //     discreteHeatMapPlotter.generateArcs();
+    // }else{
+    //     discreteHeatMapPlotter.removeArcs();
+    // }
     enableSelections();
 }
 
