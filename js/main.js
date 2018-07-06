@@ -1,5 +1,5 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings1.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv", dataHandler);
 }
 
 $(document).ready(() => {
@@ -8,6 +8,7 @@ $(document).ready(() => {
 
     loadData(dataHandler);
     d3.selectAll(".floatingBox").call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
+    setFloatingBoxButtonOnClick();
 });
 
 function dataHandler() {
@@ -181,4 +182,16 @@ function boxDragEnded() {
 
 function changeHeight() {
     discreteHeatMapPlotter.setHeight($("#boxHeightSlider").val());
+}
+
+function setFloatingBoxButtonOnClick(){
+    $(".floatingBoxButton").click(function(){
+        $(this).html(($(this).html() === "[-]")?"[+]":"[-]");
+        let theFloatingBox = this.parentNode.parentNode;
+        $(theFloatingBox).find("div.floatingBoxContent").slideToggle();
+        // let rotateDegree = ($(this).html() === "[-]")?0:90;
+        // $(theFloatingBox).css("-ms-transform", `rotate(${rotateDegree}deg)`);
+        // $(theFloatingBox).css("-webkit-transform", `rotate(${rotateDegree}deg)`);
+        // $(theFloatingBox).css("transform", `rotate(${rotateDegree}deg)`);
+    });
 }

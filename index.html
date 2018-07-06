@@ -33,10 +33,14 @@
         <div id="tooltipHeader" class="floatingBoxHeader"> Detail view</div>
         <div id="toolTipContent" class="content"></div>
     </div>
-    <div id="controlPanel" class="floatingBox">
-        <div id="controlPanelHeader" class="floatingBoxHeader"><a rel="tooltip" data-title="hide">[-]</a> Control panel
+    <div id="mapHeader">
+        <svg id="mapHeaderSVG"></svg>
+    </div>
+    <div id="discreteHeatMapDiv"></div>
+    <div id="controlPanelContainer" class="floatingBox">
+        <div id="controlPanelHeader" class="floatingBoxHeader"><span class="floatingBoxButton">[-]</span> Control panel
         </div>
-        <div id="controlPanelContent">
+        <div id="controlPanel" class="floatingBoxContent">
             Group by
             <select onchange="changeGroupOrder()" id="groupSelect" disabled="true">
                 <option value="location">location</option>
@@ -55,34 +59,28 @@
                 <option value="similarity">similarity</option>
             </select>
             Height
-            <input id="boxHeightSlider" type="range" min="1" max="6" value="6" step="1" list="steplist"
+            <input id="boxHeightSlider" type="range" min="2" max="6" value="6" step="1" list="steplist"
                    onchange="changeHeight()">
             <datalist id="steplist">
-                <option>1</option>
                 <option>2</option>
                 <option>3</option>
                 <option>4</option>
                 <option>5</option>
                 <option>6</option>
             </datalist>
-            Toggle outlier
+            Display max value
             <input id="outlierCheckbox" type="checkbox" onchange="toggleOutlier()" disabled="true" checked="true"/>
-            Lensing <input id="lensingCheckbox" type="checkbox" onchange="toggleLensing()" disabled="true" checked="false"/>
+            Lensing <input id="lensingCheckbox" type="checkbox" onchange="toggleLensing()" disabled="true"/>
         </div>
-
     </div>
-    <div id="mapHeader">
-        <svg id="mapHeaderSVG"></svg>
-    </div>
-    <div id="discreteHeatMapDiv"></div>
     <div id="linePlotContainer" class="floatingBox">
-        <div id="linePlotHeader" class="floatingBoxHeader"><a rel="tooltip" data-title="hide">[-]</a> Line graph viewer
+        <div id="linePlotHeader" class="floatingBoxHeader"><span class="floatingBoxButton">[-]</span> Line graph viewer
         </div>
-        <div id="linePlotDiv"></div>
+        <div id="linePlotDiv" class="floatingBoxContent"></div>
     </div>
     <div id="mapDivContainer" class="floatingBox">
-        <div id="locationHeader" class="floatingBoxHeader">[-] Map viewer</div>
-        <div id="mapDiv">
+        <div id="locationHeader" class="floatingBoxHeader"><span class="floatingBoxButton">[-]</span> Map viewer</div>
+        <div id="mapDiv" class="floatingBoxContent">
             <img src="mc2/Waterways%20Final.jpg" width="100%" height="100%"/>
         </div>
     </div>

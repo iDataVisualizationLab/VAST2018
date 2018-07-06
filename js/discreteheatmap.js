@@ -2,7 +2,7 @@ const linePlotDiv = "linePlotDiv";
 const mapDiv = "mapDiv";
 const linePlotContainer = "linePlotContainer";
 const mapDivContainer = "mapDivContainer";
-const controlPanel = "controlPanel";
+const controlPanelContainer = "controlPanelContainer";
 let plotData = {
     measures: [],
     locations: [],
@@ -18,7 +18,7 @@ let plotLayout = {
     separatorHeight: 1,
     outlierRadius: 1,
     outlierStrokeWidth: 2,
-    measureLabelWidth: 160,
+    measureLabelWidth: 320,
     title: null,
     colorScales: d3.scaleLinear().domain([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
         .range(["#9dbee6", "#afcae6", "#c8dce6", "#e6e6e6", "#e6e6d8", "#e6d49c", "#e6b061", "#e6852f", "#e6531a", "#e61e1a"]).interpolate(d3.interpolateHsl),
@@ -73,10 +73,9 @@ let discreteHeatMapPlotter = {
         this.generateGroupLabels();
         //this.generateArcs();
         //TODO: May need to remove this to a different place.
-        d3.select("#" + controlPanel).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px");//+10 is for the default top margin
+        d3.select("#" + controlPanelContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px");//+10 is for the default top margin
         d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px");//120 is the height of the control panel
         d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px");//320 is the height of the line plot div
-        this.setFishEye();
 
         function calculateColors() {
             plotData.measures.forEach(measure => {
@@ -131,7 +130,7 @@ let discreteHeatMapPlotter = {
 
         function onClickShow(d) {
             detailDiv
-                .style("opacity", .9).style("left", (d3.event.pageX) + "px")
+                .style("opacity", 1.0).style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY - 28) + "px");
 
             let msg = d.data[0][COL_MEASURE] + ' at ' + d.data[0][COL_LOCATION];
@@ -213,7 +212,7 @@ let discreteHeatMapPlotter = {
             plotData.months.forEach(month => {
                 let year = myDataProcessor.monthIndexToYear(month);
                 timeSvg.append("text").text(year).attr("transform", "translate(" + ((year - firstYear) * 12 * plotLayout.boxWidth) + ", " + (plotLayout.timeLabelHeight / 2) + ")")
-                    .attr("text-anchor", "start").attr("alignment-baseline", "middle").attr("style", "font: 8px sans-serif");
+                    .attr("text-anchor", "start").attr("alignment-baseline", "middle").attr("style", "font: 10px sans-serif");
             });
         }
 
@@ -229,41 +228,45 @@ let discreteHeatMapPlotter = {
         }
     },
     setFishEye: function () {
+        let fishEyeRadius = 100;
         var fisheye = d3.fisheye.circular()
-            .radius(50)
-            .distortion(3);
+            .radius(fishEyeRadius)
+            .distortion(2);
         let svg = discreteHeatMapPlotter.svg;
         svg.on("mousemove", function () {
-            let mouseCoords = d3.mouse(this);
-            fisheye.focus(mouseCoords);
-            let cells = d3.values(allCells);
-            for (let i = 0; i < cells.length; i++) {
-                let cell = cells[i];
-                let datum = cell.datum();
-                let rowY = allRowLocations["$" + datum.rowKey].y;
-                //Change the y position.
-                let d = {
-                    x: datum.x,
-                    y: datum.y + rowY
-                };
-                if (d.x > mouseCoords.x + 50
-                    || d.x < mouseCoords.x - 50
-                    || d.y < mouseCoords.y - 50
-                    || d.y > mouseCoords.y + 50) {
-                    continue;
-                }
-                let fisheyed = fisheye(d);
-                if (cell.node().nodeName === 'rect') {
-                    cell.attr("x", fisheyed.x)
-                        .attr("y", fisheyed.y - rowY)
-                        .attr("width", fisheyed.z * datum.width)
-                        .attr("height", fisheyed.z * datum.height);
-                } else if (cell.node().nodeName === 'circle') {
-                    cell.attr("cx", fisheyed.x)
-                        .attr("cy", fisheyed.y - rowY)
-                        .attr("r", fisheyed.z * datum.r);
+            if (d3.event.target.nodeName === "rect" || d3.event.target.nodeName === "circle") {
+                let mouseCoords = d3.mouse(this);
+                fisheye.focus(mouseCoords);
+                let cells = d3.values(allCells);
+                for (let i = 0; i < cells.length; i++) {
+                    let cell = cells[i];
+                    let datum = cell.datum();
+                    let rowY = allRowLocations["$" + datum.rowKey].y;
+                    //Change the y position.
+                    let d = {
+                        x: datum.x,
+                        y: datum.y + rowY
+                    };
+                    if (d.x > mouseCoords.x + fishEyeRadius * 2
+                        || d.x < mouseCoords.x - fishEyeRadius * 2
+                        || d.y < mouseCoords.y - fishEyeRadius * 2
+                        || d.y > mouseCoords.y + fishEyeRadius * 2) {
+                        continue;
+                    }
+                    let fisheyed = fisheye(d);
+                    if (cell.node().nodeName === 'rect') {
+                        cell.attr("x", fisheyed.x)
+                            .attr("y", fisheyed.y - rowY)
+                            .attr("width", fisheyed.z * datum.width)
+                            .attr("height", fisheyed.z * datum.height);
+                    } else if (cell.node().nodeName === 'circle') {
+                        cell.attr("cx", fisheyed.x)
+                            .attr("cy", fisheyed.y - rowY)
+                            .attr("r", fisheyed.z * datum.r);
+                    }
                 }
             }
+
         });
     },
     disableFishEye: function () {
@@ -359,7 +362,7 @@ let discreteHeatMapPlotter = {
                     title: '',
                     annotations: [
                         {
-                            x: 0.5,
+                            x: -1.0,
                             y: 1.0,
                             showarrow: false,
                             text: group,
@@ -393,7 +396,7 @@ let discreteHeatMapPlotter = {
                         showticklabels: false
                     },
                     margin: {
-                        l: 0,
+                        l: 160,
                         r: 0,
                         t: 0,
                         b: 0,
@@ -420,7 +423,8 @@ let discreteHeatMapPlotter = {
                         y: y,
                         type: 'lines',
                         line: {
-                            width: 0.5
+                            width: 0.5,
+                            color: "rgba(0, 0, 0, 1)"
                         }
                     }
                 ];
