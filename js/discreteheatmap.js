@@ -76,7 +76,7 @@ let discreteHeatMapPlotter = {
         d3.select("#" + controlPanel).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px");//+10 is for the default top margin
         d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px");//120 is the height of the control panel
         d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px");//320 is the height of the line plot div
-        setFishEye();
+        this.setFishEye();
 
         function calculateColors() {
             plotData.measures.forEach(measure => {
@@ -205,37 +205,6 @@ let discreteHeatMapPlotter = {
             });
         }
 
-        function setFishEye() {
-            var fisheye = d3.fisheye.circular()
-                .radius(50)
-                .distortion(3);
-            let svg = discreteHeatMapPlotter.svg;
-            svg.on("mousemove", function () {
-                fisheye.focus(d3.mouse(this));
-                d3.values(allCells).forEach(cell => {
-                    let datum = cell.datum();
-                    let rowY = allRowLocations["$" + datum.rowKey].y;
-                    //Change the y position.
-                    let d = {
-                        x: datum.x,
-                        y: datum.y + rowY
-                    };
-                    let fisheyed = fisheye(d);
-                    if (cell.node().nodeName === 'rect') {
-                        cell.attr("x", fisheyed.x)
-                            .attr("y", fisheyed.y - rowY)
-                            .attr("width", fisheyed.z * datum.width)
-                            .attr("height", fisheyed.z * datum.height);
-                    } else if (cell.node().nodeName === 'circle') {
-                        cell.attr("cx", fisheyed.x)
-                            .attr("cy", fisheyed.y - rowY)
-                            .attr("r", fisheyed.z * datum.r);
-                    }
-                });
-            });
-
-        }
-
         function generateTimeLabels() {
             var timeSvg = d3.select("#mapHeaderSVG");
             timeSvg.attr("width", plotData.months.length * plotLayout.boxWidth + plotLayout.measureLabelWidth);
@@ -258,6 +227,48 @@ let discreteHeatMapPlotter = {
             d3.select("body").on("click", onClickHide);
             return detailDiv;
         }
+    },
+    setFishEye: function () {
+        var fisheye = d3.fisheye.circular()
+            .radius(50)
+            .distortion(3);
+        let svg = discreteHeatMapPlotter.svg;
+        svg.on("mousemove", function () {
+            let mouseCoords = d3.mouse(this);
+            fisheye.focus(mouseCoords);
+            let cells = d3.values(allCells);
+            for (let i = 0; i < cells.length; i++) {
+                let cell = cells[i];
+                let datum = cell.datum();
+                let rowY = allRowLocations["$" + datum.rowKey].y;
+                //Change the y position.
+                let d = {
+                    x: datum.x,
+                    y: datum.y + rowY
+                };
+                if (d.x > mouseCoords.x + 50
+                    || d.x < mouseCoords.x - 50
+                    || d.y < mouseCoords.y - 50
+                    || d.y > mouseCoords.y + 50) {
+                    continue;
+                }
+                let fisheyed = fisheye(d);
+                if (cell.node().nodeName === 'rect') {
+                    cell.attr("x", fisheyed.x)
+                        .attr("y", fisheyed.y - rowY)
+                        .attr("width", fisheyed.z * datum.width)
+                        .attr("height", fisheyed.z * datum.height);
+                } else if (cell.node().nodeName === 'circle') {
+                    cell.attr("cx", fisheyed.x)
+                        .attr("cy", fisheyed.y - rowY)
+                        .attr("r", fisheyed.z * datum.r);
+                }
+            }
+        });
+    },
+    disableFishEye: function () {
+        let svg = discreteHeatMapPlotter.svg;
+        svg.on("mousemove", null);
     },
     calculateRowPositions: function () {
         //Default outers and inners
@@ -606,12 +617,15 @@ let discreteHeatMapPlotter = {
                             let strokeWidth = strokeScale(curr.data.length);
                             let w = plotLayout.boxWidth - strokeWidth;
                             let h = plotLayout.boxHeight - strokeWidth;
+                            curr.width = w;
+                            curr.height = h;
                             //Need to +strokeWidth/2 because the position is counted at the middle of the stroke
                             cell.attr("x", month * plotLayout.boxWidth + strokeWidth / 2).attr("y", 0 + strokeWidth / 2).attr("width", w).attr("height", h)
                                 .attr("stroke-width", strokeWidth);
                         } else {
                             let strokeWidth = strokeScale(curr.outlierCount);
                             let r = (plotLayout.boxHeight - strokeWidth) / 2;
+                            curr.r = r;
                             cell.attr("cx", month * plotLayout.boxWidth + plotLayout.boxWidth / 2).attr("cy", plotLayout.boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth);
                         }
                     }

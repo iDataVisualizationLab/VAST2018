@@ -132,6 +132,7 @@ function toggleSelections(value) {
     $("#locationOrderSelect").attr("disabled", value);
     $("#measureOrderSelect").attr("disabled", value);
     $("#outlierCheckbox").attr("disabled", value);
+    $("#lensingCheckbox").attr("disabled", value);
 }
 
 function disableSelections() {
@@ -143,10 +144,17 @@ function enableSelections() {
 }
 
 function toggleOutlier() {
-    let displayOutlier = $("#outlierCheckbox").is(":checked");
-    discreteHeatMapPlotter.toggleOutlier(displayOutlier);
+    let option = $("#outlierCheckbox").is(":checked");
+    discreteHeatMapPlotter.toggleOutlier(option);
 }
-
+function toggleLensing() {
+    let option = $("#lensingCheckbox").is(":checked");
+    if(option){
+        discreteHeatMapPlotter.setFishEye();
+    }else{
+        discreteHeatMapPlotter.disableFishEye();
+    }
+}
 let xOffset = 0;
 let yOffset = 0;
 
