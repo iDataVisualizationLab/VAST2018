@@ -73,12 +73,10 @@ let discreteHeatMapPlotter = {
         this.generateGroupLabels();
         //this.generateArcs();
         //TODO: May need to remove this to a different place.
-        d3.select("#" + controlPanel).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight+15) + "px");//+10 is for the default top margin
+        d3.select("#" + controlPanel).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px");//+10 is for the default top margin
         d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px");//120 is the height of the control panel
-        d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 +15) + "px");//320 is the height of the line plot div
-
-
-
+        d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px");//320 is the height of the line plot div
+        setFishEye();
 
         function calculateColors() {
             plotData.measures.forEach(measure => {
@@ -174,6 +172,11 @@ let discreteHeatMapPlotter = {
                                 let w = plotLayout.boxWidth - strokeWidth;
                                 let h = plotLayout.boxHeight - strokeWidth;
                                 //Need to +strokeWidth/2 because the position is counted at the middle of the stroke
+                                curr.x = month * plotLayout.boxWidth + strokeWidth / 2;
+                                curr.y = strokeWidth / 2;
+                                curr.width = w;
+                                curr.height = h;
+                                curr.rowKey = rowKey;
                                 allCells['$' + key] = row.append("rect").attr("x", month * plotLayout.boxWidth + strokeWidth / 2).attr("y", 0 + strokeWidth / 2).attr("width", w).attr("height", h).attr("fill", "steelblue")
                                     .attr("stroke-width", strokeWidth).attr("stroke", "black").attr("stroke-opacity", 0.8)
                                     .datum(curr)
@@ -181,6 +184,10 @@ let discreteHeatMapPlotter = {
                             } else {
                                 let strokeWidth = strokeScale(curr.outlierCount);
                                 let r = (plotLayout.boxHeight - strokeWidth) / 2;
+                                curr.x = month * plotLayout.boxWidth + plotLayout.boxWidth / 2;
+                                curr.y = plotLayout.boxHeight / 2;
+                                curr.r = r;
+                                curr.rowKey = rowKey;
                                 allCells['$' + key] = row.append("circle").attr("cx", month * plotLayout.boxWidth + plotLayout.boxWidth / 2).attr("cy", plotLayout.boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue")
                                     .datum(curr);
                             }
@@ -196,6 +203,37 @@ let discreteHeatMapPlotter = {
                     allRows['$' + rowKey] = row;
                 });
             });
+        }
+
+        function setFishEye() {
+            var fisheye = d3.fisheye.circular()
+                .radius(50)
+                .distortion(3);
+            let svg = discreteHeatMapPlotter.svg;
+            svg.on("mousemove", function () {
+                fisheye.focus(d3.mouse(this));
+                d3.values(allCells).forEach(cell => {
+                    let datum = cell.datum();
+                    let rowY = allRowLocations["$" + datum.rowKey].y;
+                    //Change the y position.
+                    let d = {
+                        x: datum.x,
+                        y: datum.y + rowY
+                    };
+                    let fisheyed = fisheye(d);
+                    if (cell.node().nodeName === 'rect') {
+                        cell.attr("x", fisheyed.x)
+                            .attr("y", fisheyed.y - rowY)
+                            .attr("width", fisheyed.z * datum.width)
+                            .attr("height", fisheyed.z * datum.height);
+                    } else if (cell.node().nodeName === 'circle') {
+                        cell.attr("cx", fisheyed.x)
+                            .attr("cy", fisheyed.y - rowY)
+                            .attr("r", fisheyed.z * datum.r);
+                    }
+                });
+            });
+
         }
 
         function generateTimeLabels() {
@@ -316,7 +354,7 @@ let discreteHeatMapPlotter = {
                             text: group,
                             xref: "paper",
                             yref: "paper",
-                            font:{
+                            font: {
                                 size: 10
                             }
                         }],
@@ -596,6 +634,7 @@ let discreteHeatMapPlotter = {
 let draggedLocation = null;
 let draggedMeasure = null;
 let dragOffset;
+
 function rowDragStarted() {
     let obj = d3.select(this);
     //Get the data
@@ -609,7 +648,7 @@ function rowDragStarted() {
     cloneSelection(obj);
     discreteHeatMapPlotter.clonedGroup
         .style("display", "none") //Display "none" is to prevent it from hiding the underlining element that we can't click.
-        .attr("transform", "translate(" + (d3.event.sourceEvent.clientX -  dragOffset) + "," + (d3.event.sourceEvent.clientY - plotLayout.boxHeight) + ")");
+        .attr("transform", "translate(" + (d3.event.sourceEvent.clientX - dragOffset) + "," + (d3.event.sourceEvent.clientY - plotLayout.boxHeight) + ")");
 }
 
 function cloneSelection(selection) {
