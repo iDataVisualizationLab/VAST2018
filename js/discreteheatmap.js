@@ -422,7 +422,7 @@ let discreteHeatMapPlotter = {
                                 // if (!aCell.empty()) {
                                 //     row.transition().duration(transitionDuration).attr("transform", `translate(0,${allRowLocations["$" + aCell.datum().rowKey].y + shiftDown})`)
                                 // }
-                                row.transition().duration(transitionDuration).attr("transform", d => `translate(0,${allRowLocations["$" + row.attr("rowKey")].y + shiftDown})`);
+                                row.transition().duration(transitionDuration).attr("transform", `translate(0,${allRowLocations["$" + row.attr("rowKey")].y + shiftDown})`);
                             });
                             let separator = allSeparators["$" + i];
                             separator.attr("y", +separator.attr("y") + shiftDown);
