@@ -46,10 +46,13 @@ let discreteHeatMapPlotter = {
     graphLabels: null,
     arcs: null,
     clonedGroup: null,
+    clonedInGraph: null,
     dataOverviews: null,
     overviewImages: {},
     allHeights: d3.range(plotLayout.minBoxHeight, plotLayout.expandedBoxHeight + 1, 1),
     expandedGroup: "",
+    mouseoverGroup: "",
+    groupHeight: 0,
     plot: function (theDivId) {
         let numberOfMeasures = plotData.measures.length;
         let numberOfLocations = plotData.locations.length;
@@ -62,14 +65,16 @@ let discreteHeatMapPlotter = {
         //Process the graph
         let graphDiv = d3.select("#" + theDivId);
         graphDiv.selectAll("*").remove();
-        let svg = graphDiv.append("svg").attr("width", svgWidth).attr("height", svgHeight);
+        let svg = graphDiv.append("svg").attr("width", svgWidth).attr("height", svgHeight).attr("overflow", "visible");
         this.svg = svg;
-        this.clonedGroup = d3.select("body").append("svg").attr("id", "clonedGroup").attr("overflow", "visible").append("g");
         let graphWrapper = svg.append("g").attr("class", "graphWrapper").attr("transform", "translate(0, 0)");
         let graph = graphWrapper.append("g").attr("class", "graph");
         this.graph = graph;
         var detailDiv = setupDetailDiv();
         generateTimeLabels();
+        this.clonedGroup = d3.select("body").append("svg").attr("id", "clonedGroup")
+            .append("g").attr("id", "clonedGroup");
+        this.clonedInGraph = this.svg.append("g").attr("id", "clonedInGraph");
         this.generateGroupLabels();
         //Generate cells
         generateCells();
@@ -161,6 +166,9 @@ let discreteHeatMapPlotter = {
             if (d3.event.target.classList[0] !== 'cell') {
                 detailDiv.style("opacity", 0);
             }
+            //cleanup the cloned group
+            discreteHeatMapPlotter.clonedGroup.selectAll("*").transition().duration(transitionDuration).attr("opacity", 0).remove();
+            discreteHeatMapPlotter.clonedInGraph.selectAll("*").transition().duration(transitionDuration).attr("opacity", 0).remove();
         }
 
         function generateCells() {
@@ -335,6 +343,7 @@ let discreteHeatMapPlotter = {
         let graphWidth = this.graphWidth;
         let numberOfElementsInGroup = numberOfLocations * numberOfMeasures / plotData.groups.length;
         let labelHeight = numberOfElementsInGroup * boxHeight + plotLayout.separatorHeight;
+        this.groupHeight = labelHeight;
         plotData.groups.forEach((group, i) => {
             allSeparators['$' + i] = this.graphLabels.append("rect").attr("x", 0).attr("y", i * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
         });
@@ -388,10 +397,11 @@ let discreteHeatMapPlotter = {
                     .attr("opacity", 1)
                     .attr("class", d => d.class)
                     .on("mouseover", () => {
-                        if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
+                        discreteHeatMapPlotter.mouseoverGroup = group;
+                        if(discreteHeatMapPlotter.expandedGroup===group){
                             return;
                         }
-                        if(discreteHeatMapPlotter.expandedGroup===group){
+                        if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
                             return;
                         }
                         //This section reset the previously expanded/shifted cells/rows/section
@@ -463,33 +473,13 @@ let discreteHeatMapPlotter = {
                         //Shift the last separator too
                         let separator = allSeparators["$" + plotData.groups.length];
                         separator.transition().duration(transitionDuration).attr("y", +separator.attr("y") + shiftDown).attr("class", "shiftedDownRow");
-
                         //The expandedGroup is the current group.
                         discreteHeatMapPlotter.expandedGroup = group;
-                    });
-                    // .on("mouseleave", () => {
-                    //     if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
-                    //         return;
-                    //     }
-                    //     //Reset the shifted locations
-                    //     let allExpandedRows = discreteHeatMapPlotter.graph.selectAll(".expandedRow");
-                    //     allExpandedRows.selectAll("rect").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("height", d => d.height);
-                    //     allExpandedRows.selectAll("circle").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("r", d => d.r).attr("cy", plotLayout.boxHeight / 2);
-                    //     allExpandedRows.classed("expandedRow", false);
-                    //
-                    //     //The shifted down image
-                    //     let allShiftedOverviews = discreteHeatMapPlotter.graph.selectAll(".shiftedDownOverview");
-                    //     allShiftedOverviews.attr("x", d => d.x).attr("y", d => d.y).classed("shiftedDownOverview", false);
-                    //     //The expanded image
-                    //     let expandedOverview = discreteHeatMapPlotter.graph.select(".expandedImage");
-                    //     expandedOverview.attr("height", d => d.height);
-                    //     expandedOverview.attr("xlink:href", d => discreteHeatMapPlotter.overviewImages["$" + group + (d.height + plotLayout.separatorHeight)]);
-                    //     expandedOverview.classed("expandedImage", false);
-                    //     discreteHeatMapPlotter.generateGroupLabels();
-                    //     discreteHeatMapPlotter.setRowPositions();
-                    //
-                    //
-                    // });
+                    }).call(d3.drag()
+                        .on("start", groupDragStarted)
+                        .on("drag", groupDragged)
+                        .on("end", groupDragEnded)
+                        .subject(discreteHeatMapPlotter.clonedGroup));
                 discreteHeatMapPlotter.dataOverviews["$" + group] = overview;
                 discreteHeatMapPlotter.generateOverviewImage(x, y, group, overviewWidth, groupHeight, overview);
             });
@@ -781,11 +771,59 @@ let discreteHeatMapPlotter = {
     }
 
 }
+let draggedGroup = null;
+let groupY = 0;
+function groupDragStarted(){
+    //Clean the clonedGroup
+    discreteHeatMapPlotter.clonedGroup.selectAll("*").remove();
+    dragOffset = d3.event.x;
+    let obj = d3.select(this);
+    let group = obj.node().id;
+    draggedGroup = group;
+    //Select all rows of that group.
+    let groupRowIds =d3.keys(allRows).filter(d=>d.indexOf(group)>=0);
+    //Put all these into one html ms.
+    //clean the existing nodes
+    discreteHeatMapPlotter.clonedGroup.selectAll("*").remove();
+    groupY = getMinGroupY(group);
+    groupRowIds.forEach(rowId=>{
+        let row = allRows[rowId].node();
+        discreteHeatMapPlotter.clonedGroup.node().appendChild(row.cloneNode(true));
+        discreteHeatMapPlotter.clonedGroup.attr("opacity", 0);
+    });
+}
+function getMinGroupY(group){
+    let groupRowIds =d3.keys(allRows).filter(d=>d.indexOf(group)>=0);
+    let minY = Number.MAX_SAFE_INTEGER;
+    groupRowIds.forEach(id=>{
+       let rowY = allRowLocations[id].y;
+       if(minY > rowY) minY = rowY;
+    });
+    return minY;
+}
+function groupDragged(){
+    discreteHeatMapPlotter.clonedGroup
+        .style("display", "block")
+        .attr("opacity", 1.0)
+        .attr("transform", "translate(" + (d3.event.sourceEvent.clientX - dragOffset) + ","
+            + (d3.event.sourceEvent.clientY - groupY - discreteHeatMapPlotter.groupHeight/2) + ")");
+}
+function groupDragEnded(){
+    let droppedY = getMinGroupY(discreteHeatMapPlotter.mouseoverGroup);
+    discreteHeatMapPlotter.clonedInGraph.html(discreteHeatMapPlotter.clonedGroup.html());
+    //Remove the old one
+    discreteHeatMapPlotter.clonedGroup.selectAll("*").remove();
+    discreteHeatMapPlotter.clonedInGraph.attr("opacity", 1.0).transition().duration(transitionDuration).attr("transform", `translate(0, ${droppedY-groupY})`);
+    discreteHeatMapPlotter.clonedInGraph.selectAll("*").transition().duration(transitionDuration).attr("fill", "blue").attr("opacity", 0.5);
+
+}
 let draggedLocation = null;
 let draggedMeasure = null;
 let dragOffset;
 
 function rowDragStarted() {
+    //Clean the clonedGroup
+    discreteHeatMapPlotter.clonedGroup.selectAll("*").remove();
     let obj = d3.select(this);
     //Get the data
     let aCell = obj.select("rect").empty() ? obj.select("circle") : obj.select("rect");

@@ -1,11 +1,10 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings1.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv", dataHandler);
 }
 
 $(document).ready(() => {
     d3.select("#loaderDiv").style("display", "block").style("opacity", 1.0);
     d3.select("#contentDiv").style("visibility", "hidden");
-
     loadData(dataHandler);
     d3.selectAll(".floatingBox").call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
 });
