@@ -34,7 +34,6 @@ let allCells = {};
 let allRows = {};
 let allGroups = {};
 let allSeparators = {};
-let allGroupBackgrounds = {};
 let allRowLocations = {};
 let allColors = {};
 
@@ -334,8 +333,6 @@ let discreteHeatMapPlotter = {
         let labelHeight = numberOfElementsInGroup * boxHeight + plotLayout.separatorHeight;
         plotData.groups.forEach((group, i) => {
             allSeparators['$' + i] = this.graphLabels.append("rect").attr("x", 0).attr("y", i * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
-            allGroupBackgrounds['$'+i] = this.graphLabels.append("rect").attr('x', 0).attr('y', i*labelHeight).attr('width', graphWidth+measureLabelWidth).attr('height', numberOfElementsInGroup*plotLayout.boxHeight).attr('class', 'backgroundRect').attr('stroke-width', 0).attr('opacity', 1e-6).attr('fill', '#4a4a44')
-            ;
         });
         //Print the last line
         allSeparators['$' + plotData.groups.length] = this.graphLabels.append("rect").attr("x", 0).attr("y", plotData.groups.length * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
