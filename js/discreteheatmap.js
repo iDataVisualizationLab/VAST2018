@@ -14,8 +14,8 @@ let plotData = {
 };
 let plotLayout = {
     animated: true,
-    boxWidth: 4,
-    boxHeight: 2,
+    boxWidth: 6,
+    boxHeight: 6,
     minBoxHeight: 2,
     expandedBoxHeight: 6,
     separatorHeight: 1,
@@ -49,6 +49,7 @@ let discreteHeatMapPlotter = {
     dataOverviews: null,
     overviewImages: {},
     allHeights: d3.range(plotLayout.minBoxHeight, plotLayout.expandedBoxHeight + 1, 1),
+    expandedGroup: "",
     plot: function (theDivId) {
         let numberOfMeasures = plotData.measures.length;
         let numberOfLocations = plotData.locations.length;
@@ -384,10 +385,15 @@ let discreteHeatMapPlotter = {
                     .attr("opacity", 1)
                     .attr("class", d => d.class)
                     .on("mouseover", () => {
-                        //This section reset the previously expanded/shifted cells/rows/section
                         if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
                             return;
                         }
+                        if(discreteHeatMapPlotter.expandedGroup===group){
+                            return;
+                        }
+                        //The expandedGroup is the current group.
+                        discreteHeatMapPlotter.expandedGroup = group;
+                        //This section reset the previously expanded/shifted cells/rows/section
                         //Reset the shifted locations
                         let allExpandedRows = discreteHeatMapPlotter.graph.selectAll(".expandedRow");
                         allExpandedRows.selectAll("rect").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("height", d => d.height);
