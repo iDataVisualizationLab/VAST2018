@@ -14,10 +14,10 @@ let plotData = {
 };
 let plotLayout = {
     animated: true,
-    boxWidth: 6,
-    boxHeight: 6,
+    boxWidth: 4,
+    boxHeight: 4,
     minBoxHeight: 2,
-    expandedBoxHeight: 6,
+    expandedBoxHeight: 4,
     separatorHeight: 1,
     outlierRadius: 1,
     outlierStrokeWidth: 2,
@@ -391,8 +391,6 @@ let discreteHeatMapPlotter = {
                         if(discreteHeatMapPlotter.expandedGroup===group){
                             return;
                         }
-                        //The expandedGroup is the current group.
-                        discreteHeatMapPlotter.expandedGroup = group;
                         //This section reset the previously expanded/shifted cells/rows/section
                         //Reset the shifted locations
                         let allExpandedRows = discreteHeatMapPlotter.graph.selectAll(".expandedRow");
@@ -405,7 +403,7 @@ let discreteHeatMapPlotter = {
                         //The expanded image
                         let expandedOverview = discreteHeatMapPlotter.graph.select(".expandedImage");
                         expandedOverview.attr("height", d => d.height);
-                        expandedOverview.attr("xlink:href", d => discreteHeatMapPlotter.overviewImages["$" + group + (d.height + plotLayout.separatorHeight)]);
+                        expandedOverview.attr("xlink:href", d => discreteHeatMapPlotter.overviewImages["$" + discreteHeatMapPlotter.expandedGroup + (d.height + plotLayout.separatorHeight)]);
                         expandedOverview.classed("expandedImage", false);
                         discreteHeatMapPlotter.generateGroupLabels();
                         discreteHeatMapPlotter.setRowPositions();
@@ -462,6 +460,9 @@ let discreteHeatMapPlotter = {
                         //Shift the last separator too
                         let separator = allSeparators["$" + plotData.groups.length];
                         separator.transition().duration(transitionDuration).attr("y", +separator.attr("y") + shiftDown).attr("class", "shiftedDownRow");
+
+                        //The expandedGroup is the current group.
+                        discreteHeatMapPlotter.expandedGroup = group;
                     });
                     // .on("mouseleave", () => {
                     //     if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
