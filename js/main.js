@@ -1,5 +1,5 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings1.csv", dataHandler);
 }
 
 $(document).ready(() => {
@@ -13,8 +13,7 @@ $(document).ready(() => {
 
 function dataHandler() {
     plotDiscreteHeatMap();
-    d3.select("#loaderDiv").style("opacity", 1.0).transition().duration(1000).style("opacity", 1e-6).style("display", "none");
-    d3.select("#contentDiv").style("visibility", "visible").style("opacity", 1e-6).transition().duration(5000).style("opacity", 1.0);
+    toggleLoader();
 }
 
 let rankedLocations = null;
@@ -181,9 +180,20 @@ function boxDragEnded() {
 }
 
 function changeHeight() {
+    toggleLoader();
     discreteHeatMapPlotter.setHeight($("#boxHeightSlider").val());
+    toggleLoader();
 }
-
+function toggleLoader(){
+    let value = +d3.select("#loaderDiv").style("opacity");
+    if(value===0){
+        d3.select("#loaderDiv").style("display", "block").style("opacity", 1.0);
+        d3.select("#contentDiv").style("visibility", "hidden");
+    }else{
+        d3.select("#loaderDiv").style("opacity", 1.0).transition().duration(1000).style("opacity", 1e-6).style("display", "none");
+        d3.select("#contentDiv").style("visibility", "visible").style("opacity", 1e-6).transition().duration(5000).style("opacity", 1.0);
+    }
+}
 function setFloatingBoxButtonOnClick(){
     $(".floatingBoxButton").click(function(){
         $(this).html(($(this).html() === "[-]")?"[+]":"[-]");
