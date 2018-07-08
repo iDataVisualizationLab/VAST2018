@@ -82,9 +82,12 @@ let discreteHeatMapPlotter = {
 
         //this.generateArcs();
         //TODO: May need to remove this to a different place.
-        d3.select("#" + controlPanelContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px");//+10 is for the default top margin
-        d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px");//120 is the height of the control panel
-        d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px");//320 is the height of the line plot div
+        d3.select("#" + controlPanelContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px").style("opacity", 0);//+10 is for the default top margin
+        d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px").style("opacity", 0);//120 is the height of the control panel
+        d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px").style("opacity", 0);//320 is the height of the line plot div
+        d3.select("#btnControlPanel").style("top", 0 + "px").style("opacity", "1");
+        d3.select("#btnLineGraph").style("top", ($("#btnControlPanel").width()+40) + "px").style("opacity", "1");
+        d3.select("#btnMap").style("top", ($("#btnControlPanel").width()+40+$("#btnLineGraph").width()+40) + "px").style("opacity", "1");
 
         function calculateColors() {
             plotData.measures.forEach(measure => {

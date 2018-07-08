@@ -8,7 +8,6 @@ $(document).ready(() => {
 
     loadData(dataHandler);
     d3.selectAll(".floatingBox").call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
-    setFloatingBoxButtonOnClick();
 });
 
 function dataHandler() {
@@ -206,4 +205,16 @@ function setFloatingBoxButtonOnClick(){
         // $(theFloatingBox).css("-webkit-transform", `rotate(${rotateDegree}deg)`);
         // $(theFloatingBox).css("transform", `rotate(${rotateDegree}deg)`);
     });
+}
+function openFloatingBox(theButton, theBox) {
+    $("#"+theBox).animate({
+        opacity: '1.0'
+    });
+    $("#"+theButton).fadeTo(1000, 0);
+}
+function closeFloatingBox(theButton, theBox){
+    $("#"+theBox).animate({
+        opacity: '0.0'
+    });
+    $("#"+theButton).fadeTo(1000, 1.0);
 }

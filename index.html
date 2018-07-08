@@ -15,6 +15,7 @@
     <style>
         @import "css/discreteheatmap.css";
         @import "css/loaders.css";
+        @import "css/floatingbutton.css";
     </style>
     <script src="js/discreteheatmap.js"></script>
     <link rel="stylesheet" href="css/main.css"/>
@@ -38,7 +39,7 @@
     </div>
     <div id="discreteHeatMapDiv"></div>
     <div id="controlPanelContainer" class="floatingBox">
-        <div id="controlPanelHeader" class="floatingBoxHeader"><span class="floatingBoxButton">[-]</span> Control panel
+        <div id="controlPanelHeader" class="floatingBoxHeader"><span class="floatingBoxButton" onclick="closeFloatingBox('btnControlPanel', 'controlPanelContainer')">[-]</span> Control panel
         </div>
         <div id="controlPanel" class="floatingBoxContent">
             Group by
@@ -51,7 +52,7 @@
                 <option value="alphabetical">alphabetical</option>
                 <option value="similarity">similarity</option>
                 <option value="downstream">downstream</option>
-                <option value="streamanddistance">Stream and distance</option>
+                <option value="streamanddistance">distance</option>
             </select>
             Measure order
             <select onchange="changeGroupOrder()" id="measureOrderSelect" disabled="true">
@@ -74,16 +75,19 @@
         </div>
     </div>
     <div id="linePlotContainer" class="floatingBox">
-        <div id="linePlotHeader" class="floatingBoxHeader"><span class="floatingBoxButton">[-]</span> Line graph viewer
+        <div id="linePlotHeader" class="floatingBoxHeader"><span class="floatingBoxButton" onclick="closeFloatingBox('btnLineGraph', 'linePlotContainer')">[-]</span> Line graph viewer
         </div>
         <div id="linePlotDiv" class="floatingBoxContent"></div>
     </div>
     <div id="mapDivContainer" class="floatingBox">
-        <div id="locationHeader" class="floatingBoxHeader"><span class="floatingBoxButton">[-]</span> Map viewer</div>
+        <div id="locationHeader" class="floatingBoxHeader"><span class="floatingBoxButton" onclick="closeFloatingBox('btnMap','mapDivContainer')">[-]</span> Map viewer</div>
         <div id="mapDiv" class="floatingBoxContent">
             <img src="mc2/Waterways%20Final.jpg" width="100%" height="100%"/>
         </div>
     </div>
 </div>
+<a id="btnControlPanel" class="tab tab_right" style="opacity: 0.0;" onclick="openFloatingBox('btnControlPanel', 'controlPanelContainer')" ><img src="images/tabicon.gif" alt="">Control panel<span class="screen_reader"> Will open a new window</span></a>
+<a id="btnLineGraph" class="tab tab_right" style="opacity: 0.0;" onclick="openFloatingBox('btnLineGraph', 'linePlotContainer')"><img src="images/tabicon.gif" alt="">Line plot<span class="screen_reader"> Will open a new window</span></a>
+<a id="btnMap" class="tab tab_right" style="opacity: 0.0;" onclick="openFloatingBox('btnMap','mapDivContainer')"><img src="images/tabicon.gif" alt="">Map<span class="screen_reader"> Will open a new window</span></a>
 </body>
 </html>

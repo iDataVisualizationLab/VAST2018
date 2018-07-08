@@ -49,14 +49,19 @@ div.detailView {
 }
 .floatingBox {
     position: fixed;
-    border: 1px solid black;
-    border: 1px solid rgba(0,0,0, 1);
-    background-color: rgba(255,255,255, 1);
-    border-radius: 6px;
     box-shadow: 5px 5px 5px #444;
     top: 10px;
     padding: 5px;
     box-sizing: content-box;
+    font-family: Arial;
+    background-image: -webkit-linear-gradient(left, #fefefe, #eeeeee);
+    border: 1px solid #ccc;
+    border-radius: 9px;
+    -moz-border-radius: 9px;
+    -webkit-border-radius: 9px ;
+    transform-origin: 100% 100% 0;
+    -webkit-transform-origin: 100% 100% 0;
+    -ms-transform-origin: 100% 100% 0;
 }
 .floatingBoxHeader{
     height: 20px;
@@ -78,7 +83,4 @@ div.detailView {
 }
 .floatingBoxButton{
     cursor: pointer;
-}
-.mainsvg{
-
 }

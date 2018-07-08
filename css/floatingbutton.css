@@ -1,4 +1,4 @@
-#oo_tab {
+.tab {
     display: block;
     position: fixed;
     background-color: #fff;
@@ -30,7 +30,7 @@
     box-shadow:none;
 }
 
-#oo_tab .screen_reader {
+.tab .screen_reader {
     position: absolute;
     clip: rect(1px 1px 1px 1px);
     clip: rect(1px,1px,1px,1px);
@@ -41,9 +41,8 @@
     overflow: hidden
 }
 
-#oo_tab.oo_tab_right {
+.tab.tab_right {
     right: -8px;
-    top: 33%;
     padding: 5px 14px 14px 14px;
     border-bottom: 0;
     background-image: -webkit-linear-gradient(left, #ffffff, #eeeeee);
@@ -55,33 +54,13 @@
     -ms-transform-origin: 100% 100% 0
 }
 
-#oo_tab.oo_tab_right:hover,#oo_tab.oo_tab_right:focus,#oo_tab.oo_tab_right:active {
+.tab.tab_right:hover,.tab.tab_right:focus,.tab.tab_right:active {
     -ms-transform: rotate(-90deg) scale(1.02) translateY(-5px);
     -webkit-transform: rotate(-90deg) translateY(-5px);
     -moz-transform: rotate(-90deg) translateY(-5px)
 }
 
-#oo_tab.oo_tab_left {
-    left: -12px;
-    top: 62%;
-    padding: 17px 12px 5px 13px;
-    color: white;
-    border-top: 0;
-    border-radius: 0 0 9px 9px;
-    -moz-border-radius: 0 0 9px 9px;
-    -webkit-border-radius: 0 0 9px 9px;
-    transform-origin: 0 0;
-    -webkit-transform-origin: 0 0;
-    -ms-transform-origin: 0 0
-}
-
-#oo_tab.oo_tab_left:hover,#oo_tab.oo_tab_left:focus,#oo_tab.oo_tab_left:active {
-    -ms-transform: rotate(-90deg) scale(1.02) translateY(5px);
-    -webkit-transform: rotate(-90deg) translateY(5px);
-    -moz-transform: rotate(-90deg) translateY(5px)
-}
-
-#oo_tab img {
+.tab img {
     width: 9px;
     height: 9px;
     margin-right: 7px;

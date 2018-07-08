@@ -15,7 +15,7 @@ let myDataProcessor = {
                 return d;
             });
             myDataProcessor.markOutliers();
-            myDataProcessor.filterOutByMeasures(myDataProcessor.getChemWithFewMeasures(150));
+            // myDataProcessor.filterOutByMeasures(myDataProcessor.getChemWithFewMeasures(150));
             myDataProcessor.addMonthIndex();
             dataHandler();
 
