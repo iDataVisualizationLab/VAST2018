@@ -180,9 +180,11 @@ function boxDragEnded() {
 }
 
 function changeHeight() {
-    toggleLoader();
+    d3.select("#loaderDiv").style("display", "block").style("opacity", 1.0);
+    d3.select("#contentDiv").style("visibility", "hidden");
     discreteHeatMapPlotter.setHeight($("#boxHeightSlider").val());
-    toggleLoader();
+    d3.select("#loaderDiv").style("opacity", 1.0).transition().duration(1000).style("opacity", 0).style("display", "none");
+    d3.select("#contentDiv").style("visibility", "visible").style("opacity", 1e-6).transition().duration(5000).style("opacity", 1.0);
 }
 function toggleLoader(){
     let value = +d3.select("#loaderDiv").style("opacity");
@@ -190,7 +192,7 @@ function toggleLoader(){
         d3.select("#loaderDiv").style("display", "block").style("opacity", 1.0);
         d3.select("#contentDiv").style("visibility", "hidden");
     }else{
-        d3.select("#loaderDiv").style("opacity", 1.0).transition().duration(1000).style("opacity", 1e-6).style("display", "none");
+        d3.select("#loaderDiv").style("opacity", 1.0).transition().duration(1000).style("opacity", 0).style("display", "none");
         d3.select("#contentDiv").style("visibility", "visible").style("opacity", 1e-6).transition().duration(5000).style("opacity", 1.0);
     }
 }

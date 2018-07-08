@@ -167,7 +167,7 @@ let discreteHeatMapPlotter = {
             plotData.measures.forEach(measure => {
                 plotData.locations.forEach(location => {
                     let rowKey = measure + "_" + location;
-                    let row = graph.append("g").datum({rowKey: rowKey});
+                    let row = graph.append("g").attr("rowKey", rowKey);
                     plotData.months.forEach(month => {
                         let key = measure + "_" + location + "_" + month;
                         let curr = plotData.data['$' + key];
@@ -393,7 +393,7 @@ let discreteHeatMapPlotter = {
                         let rows = allGroups["$" + group];
                         //Need to sort since the locations of the expanded cells will be shifted down differently according to its y position.
                         rows.sort((a, b)=>{
-                            return allRowLocations["$" + a.datum().rowKey].y - allRowLocations["$" + b.datum().rowKey].y;
+                            return allRowLocations["$" + a.attr("rowKey")].y - allRowLocations["$" + b.attr("rowKey")].y;
                         });
                         rows.forEach((row, i) => {
                             row.selectAll("rect")
@@ -404,7 +404,7 @@ let discreteHeatMapPlotter = {
                                 .attr("stroke-width", d => d.strokeWidth * expandedRatio)
                                 .attr("r", d => plotLayout.expandedBoxHeight / 2 - d.strokeWidth * expandedRatio / 2)
                                 .attr("cy", plotLayout.expandedBoxHeight / 2);
-                            row.transition().duration(transitionDuration).attr("transform", d => `translate(0,${allRowLocations["$" + d.rowKey].y + i * difference})`);
+                            row.transition().duration(transitionDuration).attr("transform", `translate(0,${allRowLocations["$" + row.attr("rowKey")].y + i * difference})`);
                             row.classed("expandedRow", true);
                         });
 
@@ -422,7 +422,7 @@ let discreteHeatMapPlotter = {
                                 // if (!aCell.empty()) {
                                 //     row.transition().duration(transitionDuration).attr("transform", `translate(0,${allRowLocations["$" + aCell.datum().rowKey].y + shiftDown})`)
                                 // }
-                                row.transition().duration(transitionDuration).attr("transform", d => `translate(0,${allRowLocations["$" + d.rowKey].y + shiftDown})`);
+                                row.transition().duration(transitionDuration).attr("transform", d => `translate(0,${allRowLocations["$" + row.attr("rowKey")].y + shiftDown})`);
                             });
                             let separator = allSeparators["$" + i];
                             separator.attr("y", +separator.attr("y") + shiftDown);
