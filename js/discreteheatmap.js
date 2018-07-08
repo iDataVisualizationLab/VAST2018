@@ -14,8 +14,8 @@ let plotData = {
 };
 let plotLayout = {
     animated: true,
-    boxWidth: 6,
-    boxHeight: 6,
+    boxWidth: 4,
+    boxHeight: 2,
     minBoxHeight: 2,
     expandedBoxHeight: 6,
     separatorHeight: 1,
@@ -34,6 +34,7 @@ let allCells = {};
 let allRows = {};
 let allGroups = {};
 let allSeparators = {};
+let allGroupBackgrounds = {};
 let allRowLocations = {};
 let allColors = {};
 
@@ -69,6 +70,7 @@ let discreteHeatMapPlotter = {
         this.graph = graph;
         var detailDiv = setupDetailDiv();
         generateTimeLabels();
+        this.generateGroupLabels();
         //Generate cells
         generateCells();
         this.calculateRowPositions();
@@ -77,7 +79,7 @@ let discreteHeatMapPlotter = {
         setColors();
         this.generateDataOverviews();
         this.setDataOverviewsPostionsAndVisibility();
-        this.generateGroupLabels();
+
         //this.generateArcs();
         //TODO: May need to remove this to a different place.
         d3.select("#" + controlPanelContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px");//+10 is for the default top margin
@@ -332,9 +334,12 @@ let discreteHeatMapPlotter = {
         let labelHeight = numberOfElementsInGroup * boxHeight + plotLayout.separatorHeight;
         plotData.groups.forEach((group, i) => {
             allSeparators['$' + i] = this.graphLabels.append("rect").attr("x", 0).attr("y", i * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
+            allGroupBackgrounds['$'+i] = this.graphLabels.append("rect").attr('x', 0).attr('y', i*labelHeight).attr('width', graphWidth+measureLabelWidth).attr('height', numberOfElementsInGroup*plotLayout.boxHeight).attr('class', 'backgroundRect').attr('stroke-width', 0).attr('opacity', 1e-6).attr('fill', '#4a4a44')
+            ;
         });
         //Print the last line
         allSeparators['$' + plotData.groups.length] = this.graphLabels.append("rect").attr("x", 0).attr("y", plotData.groups.length * labelHeight).attr("width", graphWidth + measureLabelWidth).attr("height", plotLayout.separatorHeight).attr("class", "separatorRect").attr("stroke-width", 0);
+        //Create the background rect
 
         //Recalculate the svg height based on new number of groups
         let graphHeight = numberOfMeasures * numberOfLocations * boxHeight + plotLayout.separatorHeight * (plotData.groups.length + 1);
@@ -382,6 +387,27 @@ let discreteHeatMapPlotter = {
                     .attr("opacity", 1)
                     .attr("class", d => d.class)
                     .on("mouseover", () => {
+                        //This section reset the previously expanded/shifted cells/rows/section
+                        if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
+                            return;
+                        }
+                        //Reset the shifted locations
+                        let allExpandedRows = discreteHeatMapPlotter.graph.selectAll(".expandedRow");
+                        allExpandedRows.selectAll("rect").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("height", d => d.height);
+                        allExpandedRows.selectAll("circle").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("r", d => d.r).attr("cy", plotLayout.boxHeight / 2);
+                        allExpandedRows.classed("expandedRow", false);
+                        //The shifted down image
+                        let allShiftedOverviews = discreteHeatMapPlotter.graph.selectAll(".shiftedDownOverview");
+                        allShiftedOverviews.attr("x", d => d.x).attr("y", d => d.y).classed("shiftedDownOverview", false);
+                        //The expanded image
+                        let expandedOverview = discreteHeatMapPlotter.graph.select(".expandedImage");
+                        expandedOverview.attr("height", d => d.height);
+                        expandedOverview.attr("xlink:href", d => discreteHeatMapPlotter.overviewImages["$" + group + (d.height + plotLayout.separatorHeight)]);
+                        expandedOverview.classed("expandedImage", false);
+                        discreteHeatMapPlotter.generateGroupLabels();
+                        discreteHeatMapPlotter.setRowPositions();
+
+                        //Start processing the on mouseover
                         if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
                             return;
                         }
@@ -433,29 +459,30 @@ let discreteHeatMapPlotter = {
                         //Shift the last separator too
                         let separator = allSeparators["$" + plotData.groups.length];
                         separator.transition().duration(transitionDuration).attr("y", +separator.attr("y") + shiftDown).attr("class", "shiftedDownRow");
-                    })
-                    .on("mouseleave", () => {
-                        if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
-                            return;
-                        }
-                        //Reset the shifted locations
-                        let allExpandedRows = discreteHeatMapPlotter.graph.selectAll(".expandedRow");
-                        allExpandedRows.selectAll("rect").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("height", d => d.height);
-                        allExpandedRows.selectAll("circle").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("r", d => d.r).attr("cy", plotLayout.boxHeight / 2);
-                        allExpandedRows.classed("expandedRow", false);
-
-                        //The shifted down image
-                        let allShiftedOverviews = discreteHeatMapPlotter.graph.selectAll(".shiftedDownOverview");
-                        allShiftedOverviews.attr("x", d => d.x).attr("y", d => d.y).classed("shiftedDownOverview", false);
-                        //The expanded image
-                        let expandedOverview = discreteHeatMapPlotter.graph.select(".expandedImage");
-                        expandedOverview.attr("height", d => d.height);
-                        expandedOverview.attr("xlink:href", d => discreteHeatMapPlotter.overviewImages["$" + group + (d.height + plotLayout.separatorHeight)]);
-                        expandedOverview.classed("expandedImage", false);
-                        discreteHeatMapPlotter.setRowPositions();
-                        discreteHeatMapPlotter.generateGroupLabels();
-
                     });
+                    // .on("mouseleave", () => {
+                    //     if (plotLayout.expandedBoxHeight === plotLayout.boxHeight) {
+                    //         return;
+                    //     }
+                    //     //Reset the shifted locations
+                    //     let allExpandedRows = discreteHeatMapPlotter.graph.selectAll(".expandedRow");
+                    //     allExpandedRows.selectAll("rect").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("height", d => d.height);
+                    //     allExpandedRows.selectAll("circle").transition().duration(transitionDuration).attr("stroke-width", d => d.strokeWidth).attr("r", d => d.r).attr("cy", plotLayout.boxHeight / 2);
+                    //     allExpandedRows.classed("expandedRow", false);
+                    //
+                    //     //The shifted down image
+                    //     let allShiftedOverviews = discreteHeatMapPlotter.graph.selectAll(".shiftedDownOverview");
+                    //     allShiftedOverviews.attr("x", d => d.x).attr("y", d => d.y).classed("shiftedDownOverview", false);
+                    //     //The expanded image
+                    //     let expandedOverview = discreteHeatMapPlotter.graph.select(".expandedImage");
+                    //     expandedOverview.attr("height", d => d.height);
+                    //     expandedOverview.attr("xlink:href", d => discreteHeatMapPlotter.overviewImages["$" + group + (d.height + plotLayout.separatorHeight)]);
+                    //     expandedOverview.classed("expandedImage", false);
+                    //     discreteHeatMapPlotter.generateGroupLabels();
+                    //     discreteHeatMapPlotter.setRowPositions();
+                    //
+                    //
+                    // });
                 discreteHeatMapPlotter.dataOverviews["$" + group] = overview;
                 discreteHeatMapPlotter.generateOverviewImage(x, y, group, overviewWidth, groupHeight, overview);
             });
