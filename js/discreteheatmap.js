@@ -496,7 +496,7 @@ let discreteHeatMapPlotter = {
     generateOverviewImage: function (x, y, group, overviewWidth, overviewHeight, overview) {
         let existingImage = discreteHeatMapPlotter.overviewImages["$" + group + overviewHeight];
         if (existingImage) {
-            overview.transition().duration(transitionDuration).attr("xlink:href", existingImage);
+            overview.attr("xlink:href", existingImage);
             return;
         }
         let layout = {
