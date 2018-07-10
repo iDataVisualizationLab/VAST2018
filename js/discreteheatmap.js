@@ -15,8 +15,8 @@ let plotData = {
 let plotLayout = {
     expandedBoxHeight: 6,
     animated: true,
-    boxWidth: 6,
-    boxHeight: 6,
+    boxWidth: 4,
+    boxHeight: 4,
     minBoxHeight: 2,
     separatorHeight: 1,
     measureLabelWidth: 160,

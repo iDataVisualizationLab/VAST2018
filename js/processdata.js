@@ -27,11 +27,13 @@ let myDataProcessor = {
         let nestedByMeasure = this.getNestedByMeasure();
         let measures = [];
         d3.keys(nestedByMeasure).forEach(key => {
-            measures.push({
-                min: d3.min(nestedByMeasure[key].map(d => d[COL_VALUE])),
-                max: d3.max(nestedByMeasure[key].map(d => d[COL_VALUE])),
-                average: d3.mean(nestedByMeasure[key].map(d => d[COL_VALUE]))
-            });
+            if (typeof nestedByMeasure[key].map === 'function') {
+                measures.push({
+                    min: d3.min(nestedByMeasure[key].map(d => d[COL_VALUE])),
+                    max: d3.max(nestedByMeasure[key].map(d => d[COL_VALUE])),
+                    average: d3.mean(nestedByMeasure[key].map(d => d[COL_VALUE]))
+                });
+            }
         });
         let keys = nested.keys();
         //Average the value of each month
@@ -54,11 +56,13 @@ let myDataProcessor = {
                 // average: d3.min(nested['$' + key].map(d => d[COL_VALUE])),
                 // average: d3.max(nested['$' + key].map(d => d[COL_VALUE]))-d3.min(nested['$' + key].map(d => d[COL_VALUE])),
                 // hasOutlier: false,
-                // average: Math.max(0, d3.max(nested['$' + key].map(d => d[COL_VALUE])) - d3.mean(nested['$' + key].map(d => d[COL_VALUE]))),
-                // hasOutlier: false,
                 // average: d3.mean(nested['$' + key].map(d => d[COL_VALUE]))-d3.min(nested['$' + key].map(d => d[COL_VALUE])),
                 // hasOutlier: false,
                 // average: d3.max(nested['$' + key].map(d => d[COL_VALUE]))-d3.min(nested['$' + key].map(d => d[COL_VALUE])),
+                // hasOutlier: false,
+                // average: Math.max(0, d3.max(nested['$' + key].map(d => d[COL_VALUE])) - d3.mean(nested['$' + key].map(d => d[COL_VALUE]))),
+                // hasOutlier: false,
+                // average: Math.max(Math.abs(d3.max(nested['$' + key].map(d => d[COL_VALUE])) - d3.mean(nested['$' + key].map(d => d[COL_VALUE]))),Math.abs(d3.min(nested['$' + key].map(d => d[COL_VALUE])) - d3.mean(nested['$' + key].map(d => d[COL_VALUE])))),
                 // hasOutlier: false,
                 hasOutlier: hasOutlier,
                 outlierType: outlierType,
