@@ -7,6 +7,11 @@ $(document).ready(() => {
     d3.select("#contentDiv").style("visibility", "hidden");
     loadData(dataHandler);
     d3.selectAll(".floatingBox").call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
+    $(document).keyup(function(e) {
+        if (e.keyCode == 27) {
+            discreteHeatMapPlotter.onClickHide();
+        }
+    });
 });
 
 function dataHandler() {
@@ -207,7 +212,7 @@ function setFloatingBoxButtonOnClick(){
 }
 function openFloatingBox(theButton, theBox) {
     $("#"+theBox).animate({
-        opacity: '1.0'
+        opacity: '1.0',
     });
     $("#"+theButton).fadeTo(1000, 0);
 }

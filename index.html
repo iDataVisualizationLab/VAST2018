@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>VAST 2018 MC2</title>
+    <title>RANGE</title>
     <script src="lib/d3.js"></script>
     <script src="lib/d3-color.v1.min.js"></script>
     <script src="lib/d3-interpolate.v1.min.js"></script>
@@ -23,9 +23,7 @@
     <script src="js/processdata.js"></script>
     <script src="js/main.js"></script>
     <script src="js/calculateCorrelations.js"></script>
-    <style>
 
-    </style>
 </head>
 <body>
 <div class="loader" id="loaderDiv"></div>
@@ -63,6 +61,7 @@
             <input id="boxHeightSlider" type="range" min="2" max="6" value="6" step="1" list="steplist"
                    onchange="changeHeight()">
             <datalist id="steplist">
+                <option>1</option>
                 <option>2</option>
                 <option>3</option>
                 <option>4</option>
@@ -72,6 +71,13 @@
             Display max value
             <input id="outlierCheckbox" type="checkbox" onchange="toggleOutlier()" disabled="true" checked="true"/>
             Lensing <input id="lensingCheckbox" type="checkbox" onchange="toggleLensing()" disabled="true"/>
+            <!--Monthly aggregation-->
+            <!--<input id="averageAggregation" type="radio" value="average" checked name="monthlyAggregate"/>-->
+            <!--<label for="averageAggregation">average</label>-->
+            <!--<input id="maxAggregation" type="radio" value="max" name="monthlyAggregate"/>-->
+            <!--<label for="maxAggregation">max</label>-->
+            <!--<input id="minAggregation" type="radio" value="min" name="monthlyAggregate"/>-->
+            <!--<label for="minAggregation">min</label>-->
         </div>
     </div>
     <div id="linePlotContainer" class="floatingBox">

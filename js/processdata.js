@@ -21,6 +21,52 @@ let myDataProcessor = {
 
         });
     },
+    getNestedByMeasureLocationMonthFromData: function (data) {
+        //Nest by Measure + Location + Month Index
+        let nested = d3.nest().key(d => d[COL_MEASURE] + "_" + d[COL_LOCATION] + "_" + d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(data);
+        let nestedByMeasure = this.getNestedByMeasure();
+        let measures = [];
+        d3.keys(nestedByMeasure).forEach(key => {
+            measures.push({
+                min: d3.min(nestedByMeasure[key].map(d => d[COL_VALUE])),
+                max: d3.max(nestedByMeasure[key].map(d => d[COL_VALUE])),
+                average: d3.mean(nestedByMeasure[key].map(d => d[COL_VALUE]))
+            });
+        });
+        let keys = nested.keys();
+        //Average the value of each month
+        keys.forEach(key => {
+            let hasOutlier = false;
+            let outlierType = '';
+            let outlierCount = 0;
+            for (let i = 0; i < nested['$' + key].length; i++) {
+                if (nested['$' + key][i]['isOutlier'] === true) {
+                    hasOutlier = true;
+                    outlierType += nested['$' + key][i]['outlierType'];
+                    outlierCount += 1;
+                }
+            }
+            nested['$' + key] = {
+                data: nested['$' + key],
+                //TODO: Change these to selectable options.
+                average: d3.mean(nested['$' + key].map(d => d[COL_VALUE])),
+                // average: d3.max(nested['$' + key].map(d => d[COL_VALUE])),
+                // average: d3.min(nested['$' + key].map(d => d[COL_VALUE])),
+                // average: d3.max(nested['$' + key].map(d => d[COL_VALUE]))-d3.min(nested['$' + key].map(d => d[COL_VALUE])),
+                // hasOutlier: false,
+                // average: Math.max(0, d3.max(nested['$' + key].map(d => d[COL_VALUE])) - d3.mean(nested['$' + key].map(d => d[COL_VALUE]))),
+                // hasOutlier: false,
+                // average: d3.mean(nested['$' + key].map(d => d[COL_VALUE]))-d3.min(nested['$' + key].map(d => d[COL_VALUE])),
+                // hasOutlier: false,
+                // average: d3.max(nested['$' + key].map(d => d[COL_VALUE]))-d3.min(nested['$' + key].map(d => d[COL_VALUE])),
+                // hasOutlier: false,
+                hasOutlier: hasOutlier,
+                outlierType: outlierType,
+                outlierCount: outlierCount
+            };
+        });
+        return nested;
+    },
     unpack: function (data, columnName) {
         return data.map(row => row[columnName]);
     },
@@ -37,20 +83,20 @@ let myDataProcessor = {
             return d;
         });
     },
-    monthIndexToYear: function(month){
-        let nestedByMonthIndex = d3.nest().key(d=>d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(this.data);
-        let year = nestedByMonthIndex["$"+month][0][COL_SAMPLE_DATE].getFullYear();
+    monthIndexToYear: function (month) {
+        let nestedByMonthIndex = d3.nest().key(d => d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(this.data);
+        let year = nestedByMonthIndex["$" + month][0][COL_SAMPLE_DATE].getFullYear();
         return year;
     },
-    filterOutByMeasures: function(measures){
+    filterOutByMeasures: function (measures) {
         this.data = this.data.filter(d => !(measures.indexOf(d[COL_MEASURE]) >= 0));
     },
-    getChemWithFewMeasures: function(n){
+    getChemWithFewMeasures: function (n) {
         let nestedByMeasures = this.getNestedByMeasure();
-        let  keys = nestedByMeasures.keys();
-        let chemWithFewMeasures =[];
-        keys.forEach(measure=>{
-            if(nestedByMeasures["$"+measure].length < n){
+        let keys = nestedByMeasures.keys();
+        let chemWithFewMeasures = [];
+        keys.forEach(measure => {
+            if (nestedByMeasures["$" + measure].length < n) {
                 chemWithFewMeasures.push(measure);
             }
         });
@@ -63,12 +109,12 @@ let myDataProcessor = {
         keys.forEach(key => {
             let bound = statistics.normalBound(normalBounds['$' + key].map(d => d[COL_VALUE]));
             normalBounds['$' + key].forEach(d => {
-                if ((bound[0]!=bound[1]) && (d[COL_VALUE] >= bound[1] || d[COL_VALUE] < bound[0]) ){
+                if ((bound[0] != bound[1]) && (d[COL_VALUE] >= bound[1] || d[COL_VALUE] < bound[0])) {
                     d["isOutlier"] = true;
-                    if(d[COL_VALUE] > bound[1]){
+                    if (d[COL_VALUE] > bound[1]) {
                         d["outlierType"] = "upper";
                     }
-                    if(d[COL_VALUE] < bound[0]){
+                    if (d[COL_VALUE] < bound[0]) {
                         d["outlierType"] = "lower";
                     }
                 } else {
@@ -78,42 +124,42 @@ let myDataProcessor = {
         });
         this.data = normalBounds.values().reduce((prev, cur) => prev.concat(cur));
     },
-    getOverviewByMeasureMonth: function(){
+    getOverviewByMeasureMonth: function () {
         let scales = this.getNestedScalesWithOutliers();
-        let nested = d3.nest().key(d=>d[COL_MEASURE]+"_"+d[COL_MONTH_INDEX]).map(this.data);
+        let nested = d3.nest().key(d => d[COL_MEASURE] + "_" + d[COL_MONTH_INDEX]).map(this.data);
         let results = {};
         let months = this.getMonthNumber()
-        this.getAllMeasures().forEach(measure=>{
+        this.getAllMeasures().forEach(measure => {
             let measureData = [];
-            let measureScale = scales["$"+measure];
+            let measureScale = scales["$" + measure];
             for (let i = 0; i < months; i++) {
-                let data = nested["$"+measure+"_"+i];
-                if(data && data.length> 0){
-                    measureData.push(d3.mean(data.map(d=>measureScale(d[COL_VALUE]))));
-                }else{
+                let data = nested["$" + measure + "_" + i];
+                if (data && data.length > 0) {
+                    measureData.push(d3.mean(data.map(d => measureScale(d[COL_VALUE]))));
+                } else {
                     measureData.push(null);
                 }
             }
-            results['$'+measure] = measureData;
+            results['$' + measure] = measureData;
         });
         return results;
     },
-    getOverviewByLocationMonth: function(){
+    getOverviewByLocationMonth: function () {
         let scales = this.getNestedScalesWithOutliers();
-        let nested = d3.nest().key(d=>d[COL_LOCATION]+"_"+d[COL_MONTH_INDEX]).map(this.data);
+        let nested = d3.nest().key(d => d[COL_LOCATION] + "_" + d[COL_MONTH_INDEX]).map(this.data);
         let results = {};
         let months = this.getMonthNumber()
-        this.getAllLocations().forEach(location=>{
+        this.getAllLocations().forEach(location => {
             let locationData = [];
             for (let i = 0; i < months; i++) {
-                let data = nested["$"+location+"_"+i];
-                if(data && data.length> 0){
-                    locationData.push(d3.mean(data.map(d=>scales["$"+d[COL_MEASURE]](d[COL_VALUE]))));
-                }else{
+                let data = nested["$" + location + "_" + i];
+                if (data && data.length > 0) {
+                    locationData.push(d3.mean(data.map(d => scales["$" + d[COL_MEASURE]](d[COL_VALUE]))));
+                } else {
                     locationData.push(null);
                 }
             }
-            results['$'+location] = locationData;
+            results['$' + location] = locationData;
         });
         return results;
     },
@@ -130,32 +176,7 @@ let myDataProcessor = {
     getNestedByMeasureLocationMonth: function () {
         return this.getNestedByMeasureLocationMonthFromData(this.data);
     },
-    getNestedByMeasureLocationMonthFromData: function (data) {
-        //Nest by Measure + Location + Month Index
-        let nested = d3.nest().key(d => d[COL_MEASURE] + "_" + d[COL_LOCATION] + "_" + d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(data);
-        let keys = nested.keys();
-        //Average the value of each month
-        keys.forEach(key => {
-            let hasOutlier = false;
-            let outlierType = '';
-            let outlierCount = 0;
-            for (let i = 0; i < nested['$' + key].length; i++) {
-                if(nested['$'+key][i]['isOutlier']===true){
-                    hasOutlier=true;
-                    outlierType += nested['$'+key][i]['outlierType'];
-                    outlierCount += 1;
-                }
-            }
-            nested['$' + key] = {
-                data: nested['$' + key],
-                average: d3.mean(nested['$' + key].map(d => d[COL_VALUE])),
-                hasOutlier: hasOutlier,
-                outlierType: outlierType,
-                outlierCount: outlierCount
-            };
-        });
-        return nested;
-    },
+
     getNestedData: function () {
         //Nested by MEASURE
         let nested = d3.nest().key(d => d[COL_MEASURE]).sortKeys(d3.ascending).map(this.data);
@@ -186,7 +207,7 @@ let myDataProcessor = {
         //Scales by the average of the month.
         var scales = {};
         //Filter the outliers while calculating the range.
-        let filteredData = this.data.filter(d=>!d["isOutlier"]);
+        let filteredData = this.data.filter(d => !d["isOutlier"]);
         let averages = this.getNestedByMeasureLocationMonthFromData(filteredData);
         let measures = this.getAllMeasures();
         measures.forEach(measure => {
