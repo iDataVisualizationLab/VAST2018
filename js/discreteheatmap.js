@@ -15,8 +15,8 @@ let plotData = {
 let plotLayout = {
     expandedBoxHeight: 6,
     animated: true,
-    boxWidth: 4,
-    boxHeight: 4,
+    boxWidth: 6,
+    boxHeight: 6,
     minBoxHeight: 2,
     separatorHeight: 1,
     measureLabelWidth: 160,
@@ -85,9 +85,11 @@ let discreteHeatMapPlotter = {
 
         //this.generateArcs();
         //TODO: May need to remove this to a different place.
-        d3.select("#" + controlPanelContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px").style("opacity", 0);//+10 is for the default top margin
-        d3.select("#" + linePlotContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px").style("opacity", 0);//120 is the height of the control panel
-        d3.select("#" + mapDivContainer).style("left", (graphWidth + plotLayout.measureLabelWidth + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px").style("opacity", 0);//320 is the height of the line plot div
+        // let leftPanel = graphWidth + plotLayout.measureLabelWidth;
+        let leftPanel = 0;
+        d3.select("#" + controlPanelContainer).style("left", (leftPanel+ 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px").style("opacity", 0);//+10 is for the default top margin
+        d3.select("#" + linePlotContainer).style("left", (leftPanel+20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px").style("opacity", 0);//120 is the height of the control panel
+        d3.select("#" + mapDivContainer).style("left", (leftPanel+20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px").style("opacity", 0);//320 is the height of the line plot div
         d3.select("#btnControlPanel").style("top", 0 + "px").style("opacity", "1");
         d3.select("#btnLineGraph").style("top", ($("#btnControlPanel").width() + 40) + "px").style("opacity", "1");
         d3.select("#btnMap").style("top", ($("#btnControlPanel").width() + 40 + $("#btnLineGraph").width() + 40) + "px").style("opacity", "1");
@@ -494,7 +496,7 @@ let discreteHeatMapPlotter = {
     generateOverviewImage: function (x, y, group, overviewWidth, overviewHeight, overview) {
         let existingImage = discreteHeatMapPlotter.overviewImages["$" + group + overviewHeight];
         if (existingImage) {
-            overview.attr("xlink:href", existingImage);
+            overview.transition().duration(transitionDuration).attr("xlink:href", existingImage);
             return;
         }
         let layout = {
@@ -688,7 +690,7 @@ let discreteHeatMapPlotter = {
             name: location + "-" + measure,
             mode: 'lines+markers',
             line: {
-                width: 0.3
+                width: 0.5
             },
             marker: {
                 opacity: 0.3,
@@ -708,7 +710,7 @@ let discreteHeatMapPlotter = {
             plot_bgcolor: 'rgba(0,0,0,0)',
             font: {
                 family: "Georgia,Times,serif",
-                size: 8
+                size: 11
             },
             margin: {
                 l: 50,

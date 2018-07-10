@@ -213,12 +213,16 @@ function setFloatingBoxButtonOnClick(){
 function openFloatingBox(theButton, theBox) {
     $("#"+theBox).animate({
         opacity: '1.0',
+        display: 'block',
+        'z-index': 10
     });
     $("#"+theButton).fadeTo(1000, 0);
 }
 function closeFloatingBox(theButton, theBox){
     $("#"+theBox).animate({
-        opacity: '0.0'
+        opacity: '0.0',
+        display: 'none',
+        'z-index': 0
     });
     $("#"+theButton).fadeTo(1000, 1.0);
 }
