@@ -156,9 +156,10 @@ let discreteHeatMapPlotter = {
 
         function onClickShow(d) {
             detailDiv
-                .style("opacity", 1.0).style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px")
-                .style("display", "block");
+                .style("opacity", 1.0).style("left", (d3.event.clientX) + "px")
+                .style("top", (d3.event.clientY - 28) + "px")
+                .style("display", "block")
+                .style("z-index", 10);
 
             let msg = d.data[0][COL_MEASURE] + ' at ' + d.data[0][COL_LOCATION];
             msg += "<table style='width: 100%; margin-top: 5px;'>";
@@ -927,8 +928,8 @@ function groupDragEnded() {
         if (similarity) {
             let detailDiv = d3.select("#detailDiv");
             detailDiv
-                .style("opacity", 1.0).style("left", (d3.event.sourceEvent.pageX) + "px")
-                .style("top", (d3.event.sourceEvent.pageY - 28) + "px")
+                .style("opacity", 1.0).style("left", (d3.event.sourceEvent.clientX) + "px")
+                .style("top", (d3.event.sourceEvent.clientY - 28) + "px")
                 .style("display", "block")
                 .style("z-index", 10);
             let msg = "Two group similarity is: " + similarity;
