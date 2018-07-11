@@ -11,6 +11,8 @@ let plotData = {
     data: [],
     groups: [],
     streamInformation: [],
+    mapLocations: null,
+    mapSize: null,
 
 };
 let plotLayout = {
@@ -20,8 +22,9 @@ let plotLayout = {
     boxHeight: 6,
     minBoxHeight: 2,
     separatorHeight: 1,
-    measureLabelWidth: 160,
+    measureLabelWidth: 400,
     title: null,
+    pinSize: {width: 28, height: 38},
     colorScales: d3.scaleLinear().domain([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
         .range(["#9dbee6", "#afcae6", "#c8dce6", "#e6e6e6", "#e6e6d8", "#e6d49c", "#e6b061", "#e6852f", "#e6531a", "#e61e1a"]).interpolate(d3.interpolateHsl),
     // colorScales: d3.scaleLinear().domain([0, 0.03, 0.06, 0.15, 0.3, 0.5, 0.7, 0.85, 0.94, 0.97, 1])
@@ -97,7 +100,8 @@ let discreteHeatMapPlotter = {
         d3.select("#btnControlPanel").style("top", 0 + "px").style("opacity", "1");
         d3.select("#btnLineGraph").style("top", ($("#btnControlPanel").width() + 40) + "px").style("opacity", "1");
         d3.select("#btnMap").style("top", ($("#btnControlPanel").width() + 40 + $("#btnLineGraph").width() + 40) + "px").style("opacity", "1");
-
+        this.setupPins();
+        this.setVisibePin("Dump.");
         function calculateColors() {
             plotData.measures.forEach(measure => {
                 let measureScale = plotData.scales["$" + measure];
@@ -206,7 +210,9 @@ let discreteHeatMapPlotter = {
                                 allCells['$' + key] = row.append("circle").attr("cx", month * plotLayout.boxWidth + plotLayout.boxWidth / 2).attr("cy", plotLayout.boxHeight / 2).attr("r", r).attr("stroke-width", strokeWidth).attr("class", "cell").attr("fill", "steelblue")
                                     .datum(curr);
                             }
-                            allCells['$' + key].on("click", onClickShow);
+                            allCells['$' + key]
+                                .on("click", onClickShow)
+                                .on("mouseover", ()=>{discreteHeatMapPlotter.setVisibePin(location);});
                         }
                     });
                     row.call(d3.drag()
@@ -242,6 +248,19 @@ let discreteHeatMapPlotter = {
             d3.select("body").on("click", discreteHeatMapPlotter.onClickHide);
             return detailDiv;
         }
+    },
+    pins: null,
+    setupPins(){
+        this.pins = d3.select("#mapDiv").selectAll('.mapPin')
+            .data(plotData.mapLocations).enter()
+            .append('img').attr("src", 'images/locationpin.png')
+            .style("position", "absolute")
+            .style("margin", 0+"px")
+            .style('left', d=>((d.x-plotLayout.pinSize.width/2))+"px")
+            .style('top', d=>(((d.y-plotLayout.pinSize.height/2)))+"px");
+    },
+    setVisibePin(location){
+        this.pins.transition().duration(transitionDuration).style("opacity", d=>d.name===location?1:0);
     },
     onClickHide: function () {
         if (!d3.event || d3.event.target.classList[0] !== 'cell') {
@@ -423,6 +442,9 @@ let discreteHeatMapPlotter = {
                     .attr("opacity", 1)
                     .attr("class", d => d.class)
                     .on("mouseover", () => {
+                        if(plotLayout.groupByLocation){
+                            discreteHeatMapPlotter.setVisibePin(group);
+                        }
                         discreteHeatMapPlotter.mouseoverGroup = group;
                         if (discreteHeatMapPlotter.expandedGroup === group) {
                             return;

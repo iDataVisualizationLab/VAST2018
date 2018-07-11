@@ -1,5 +1,5 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings1.csv", dataHandler);
 }
 
 $(document).ready(() => {
@@ -7,7 +7,7 @@ $(document).ready(() => {
     d3.select("#contentDiv").style("visibility", "hidden");
     loadData(dataHandler);
     d3.selectAll(".floatingBox").call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
-    $(document).keyup(function(e) {
+    $(document).keyup(function (e) {
         if (e.keyCode == 27) {
             discreteHeatMapPlotter.onClickHide();
         }
@@ -54,9 +54,25 @@ let streamAndDistanceLocationData = [
     {name: "Tansanee", stream: 3},
     {name: "Decha", stream: 4}];
 
+let mapLocations = [
+    {name: "Dump.", stream: 0, x: 473, y: 76},
+    {name: "Kohsoom", stream: 1, x: 477, y: 176},
+    {name: "Boonsri", stream: 1, x: 330, y: 86},
+    {name: "Busarakhan", stream: 1, x: 475, y: 245},
+    {name: "Chai", stream: 1, x: 385, y: 290},
+    {name: "Kannika", stream: 1, x: 420, y: 453},
+    {name: "Achara", stream: 2, x: 246, y: 189},
+    {name: "Somchair", stream: 2, x: 180, y: 275},
+    {name: "Sakda", stream: 2, x: 330, y: 560},
+    {name: "Tansanee", stream: 3, x: 182, y: 432},
+    {name: "Decha", stream: 4, x: 46, y: 367}];
+let mapSize = {width: 885, height: 885};
+
 function plotDiscreteHeatMap() {
     plotData.streamInformation = streamInformation;
     plotData.locations = myDataProcessor.getAllLocations();
+    plotData.mapLocations = mapLocations;
+    plotData.mapSize = mapSize;
     //Order alphabeticall
     plotData.locations.sort((a, b) => a.localeCompare(b));
     plotData.measures = myDataProcessor.getAllMeasures();
@@ -86,6 +102,7 @@ function changeGroupOrder() {
     let group = groupSelect.val();
     let measureOrder = measureOrderSelect.val();
     let locationOrder = locationOrderSelect.val();
+
     disableSelections();
     //Measure order
     if (measureOrder === "alphabetical") {
@@ -114,6 +131,7 @@ function changeGroupOrder() {
         plotLayout.groupByLocation = false;
         plotData.groups = plotData.measures;
     }
+
     discreteHeatMapPlotter.calculateRowPositions();
     discreteHeatMapPlotter.setRowPositions();
     discreteHeatMapPlotter.setDataOverviewsPostionsAndVisibility();
@@ -150,14 +168,16 @@ function toggleOutlier() {
     let option = $("#outlierCheckbox").is(":checked");
     discreteHeatMapPlotter.toggleOutlier(option);
 }
+
 function toggleLensing() {
     let option = $("#lensingCheckbox").is(":checked");
-    if(option){
+    if (option) {
         discreteHeatMapPlotter.setFishEye();
-    }else{
+    } else {
         discreteHeatMapPlotter.disableFishEye();
     }
 }
+
 let xOffset = 0;
 let yOffset = 0;
 
@@ -189,40 +209,32 @@ function changeHeight() {
     d3.select("#loaderDiv").style("opacity", 1.0).transition().duration(1000).style("opacity", 0).style("display", "none");
     d3.select("#contentDiv").style("visibility", "visible").style("opacity", 1e-6).transition().duration(5000).style("opacity", 1.0);
 }
-function toggleLoader(){
+
+function toggleLoader() {
     let value = +d3.select("#loaderDiv").style("opacity");
-    if(value===0){
+    if (value === 0) {
         d3.select("#loaderDiv").style("display", "block").style("opacity", 1.0);
         d3.select("#contentDiv").style("visibility", "hidden");
-    }else{
+    } else {
         d3.select("#loaderDiv").style("opacity", 1.0).transition().duration(1000).style("opacity", 0).style("display", "none");
         d3.select("#contentDiv").style("visibility", "visible").style("opacity", 1e-6).transition().duration(5000).style("opacity", 1.0);
     }
 }
-function setFloatingBoxButtonOnClick(){
-    $(".floatingBoxButton").click(function(){
-        $(this).html(($(this).html() === "[-]")?"[+]":"[-]");
-        let theFloatingBox = this.parentNode.parentNode;
-        $(theFloatingBox).find("div.floatingBoxContent").slideToggle();
-        // let rotateDegree = ($(this).html() === "[-]")?0:90;
-        // $(theFloatingBox).css("-ms-transform", `rotate(${rotateDegree}deg)`);
-        // $(theFloatingBox).css("-webkit-transform", `rotate(${rotateDegree}deg)`);
-        // $(theFloatingBox).css("transform", `rotate(${rotateDegree}deg)`);
-    });
-}
+
 function openFloatingBox(theButton, theBox) {
-    $("#"+theBox).animate({
+    $("#" + theBox).animate({
         opacity: '1.0',
         display: 'block',
         'z-index': 10
     });
-    $("#"+theButton).fadeTo(1000, 0);
+    $("#" + theButton).fadeTo(1000, 0);
 }
-function closeFloatingBox(theButton, theBox){
-    $("#"+theBox).animate({
+
+function closeFloatingBox(theButton, theBox) {
+    $("#" + theBox).animate({
         opacity: '0.0',
         display: 'none',
         'z-index': 0
     });
-    $("#"+theButton).fadeTo(1000, 1.0);
+    $("#" + theButton).fadeTo(1000, 1.0);
 }

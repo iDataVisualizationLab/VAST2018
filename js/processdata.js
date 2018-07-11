@@ -16,7 +16,8 @@ let myDataProcessor = {
                 return d;
             });
             myDataProcessor.markOutliers();
-            // myDataProcessor.markExtremelyHighvalues(1500);
+            myDataProcessor.filterOutliers();
+            myDataProcessor.filterExtremelyHighvalues(1500);
             myDataProcessor.filterOutByMeasures(myDataProcessor.getChemWithFewMeasures(150));
             myDataProcessor.addMonthIndex();
             dataHandler();
@@ -99,15 +100,17 @@ let myDataProcessor = {
         this.data = this.data.filter(d => !(measures.indexOf(d[COL_MEASURE]) >= 0));
     },
     markExtremelyHighvalues: function(value){
-        // this.data = this.data.map(d=>{
-        //    if(d[COL_VALUE] >= value){
-        //        d[COL_IS_OUTLIER] = true;
-        //        d['outlierType'] = 'upper';
-        //    }else {
-        //        d[COL_IS_OUTLIER] = false;
-        //    }
-        //    return d;
-        // });
+        this.data = this.data.map(d=>{
+           if(d[COL_VALUE] >= value){
+               d[COL_IS_OUTLIER] = true;
+               d['outlierType'] = 'upper';
+           }else {
+               d[COL_IS_OUTLIER] = false;
+           }
+           return d;
+        });
+    },
+    filterExtremelyHighvalues: function(value){
         this.data = this.data.filter(d=>d[COL_VALUE] < value);
     },
     getChemWithFewMeasures: function (n) {
@@ -162,6 +165,9 @@ let myDataProcessor = {
             results['$' + measure] = measureData;
         });
         return results;
+    },
+    filterOutliers: function () {
+        this.data = this.data.filter(d=>d[COL_IS_OUTLIER]===false);
     },
     getOverviewByLocationMonth: function () {
         let scales = this.getNestedScalesWithOutliers();
