@@ -33,7 +33,7 @@ let plotLayout = {
     timeLabelHeight: 20,
     groupColors: d3.schemeDark2,
     groupColorCounter: 0,
-    linePlotLegendGroups:[],
+    linePlotLegendGroups: [],
 };
 let allCells = {};
 let allRows = {};
@@ -94,14 +94,15 @@ let discreteHeatMapPlotter = {
         //TODO: May need to remove this to a different place.
         let leftPanel = graphWidth + plotLayout.measureLabelWidth;
         // let leftPanel = 0;
-        d3.select("#" + controlPanelContainer).style("left", (leftPanel+ 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px").style("opacity", 0);//+10 is for the default top margin
-        d3.select("#" + linePlotContainer).style("left", (leftPanel+20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px").style("opacity", 0);//120 is the height of the control panel
-        d3.select("#" + mapDivContainer).style("left", (leftPanel+20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px").style("opacity", 0);//320 is the height of the line plot div
+        d3.select("#" + controlPanelContainer).style("left", (leftPanel + 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px").style("opacity", 0);//+10 is for the default top margin
+        d3.select("#" + linePlotContainer).style("left", (leftPanel + 20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px").style("opacity", 0);//120 is the height of the control panel
+        d3.select("#" + mapDivContainer).style("left", (leftPanel + 20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px").style("opacity", 0);//320 is the height of the line plot div
         d3.select("#btnControlPanel").style("top", 0 + "px").style("opacity", "1");
         d3.select("#btnLineGraph").style("top", ($("#btnControlPanel").width() + 40) + "px").style("opacity", "1");
         d3.select("#btnMap").style("top", ($("#btnControlPanel").width() + 40 + $("#btnLineGraph").width() + 40) + "px").style("opacity", "1");
         this.setupPins();
         this.setVisibePin("Dump.");
+
         function calculateColors() {
             plotData.measures.forEach(measure => {
                 let measureScale = plotData.scales["$" + measure];
@@ -156,7 +157,8 @@ let discreteHeatMapPlotter = {
         function onClickShow(d) {
             detailDiv
                 .style("opacity", 1.0).style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
+                .style("top", (d3.event.pageY - 28) + "px")
+                .style("display", "block");
 
             let msg = d.data[0][COL_MEASURE] + ' at ' + d.data[0][COL_LOCATION];
             msg += "<table style='width: 100%; margin-top: 5px;'>";
@@ -212,7 +214,9 @@ let discreteHeatMapPlotter = {
                             }
                             allCells['$' + key]
                                 .on("click", onClickShow)
-                                .on("mouseover", ()=>{discreteHeatMapPlotter.setVisibePin(location);});
+                                .on("mouseover", () => {
+                                    discreteHeatMapPlotter.setVisibePin(location);
+                                });
                         }
                     });
                     row.call(d3.drag()
@@ -250,24 +254,25 @@ let discreteHeatMapPlotter = {
         }
     },
     pins: null,
-    setupPins(){
+    setupPins() {
         this.pins = d3.select("#mapDiv").selectAll('.mapPin')
             .data(plotData.mapLocations).enter()
             .append('img').attr("src", 'images/locationpin.png')
             .style("position", "absolute")
-            .style("margin", 0+"px")
-            .style('left', d=>((d.x-plotLayout.pinSize.width/2))+"px")
-            .style('top', d=>(((d.y-plotLayout.pinSize.height/2)))+"px");
+            .style("margin", 0 + "px")
+            .style('left', d => ((d.x - plotLayout.pinSize.width / 2)) + "px")
+            .style('top', d => (((d.y - plotLayout.pinSize.height / 2))) + "px");
     },
-    setVisibePin(location){
-        this.pins.transition().duration(transitionDuration).style("opacity", d=>d.name===location?1:0);
+    setVisibePin(location) {
+        this.pins.transition().duration(transitionDuration).style("opacity", d => d.name === location ? 1 : 0);
     },
     onClickHide: function () {
-        if (!d3.event || d3.event.target.classList[0] !== 'cell') {
+        if (!d3.event || (d3.event.target.classList[0] !== 'cell' && !d3.event.target.classList.contains('floatingBox'))) {
             var detailDiv = d3.select("#detailDiv");
-            if(+detailDiv.style("opacity")===1){
+            if (+detailDiv.style("opacity") === 1) {
                 detailDiv.style("opacity", 0);
-            }else{
+                detailDiv.style("display", "none")
+            } else {
                 //Disable the expanded group
                 discreteHeatMapPlotter.resetExpandedGroup();
                 //cleanup the cloned group
@@ -442,7 +447,7 @@ let discreteHeatMapPlotter = {
                     .attr("opacity", 1)
                     .attr("class", d => d.class)
                     .on("mouseover", () => {
-                        if(plotLayout.groupByLocation){
+                        if (plotLayout.groupByLocation) {
                             discreteHeatMapPlotter.setVisibePin(group);
                         }
                         discreteHeatMapPlotter.mouseoverGroup = group;
@@ -727,7 +732,7 @@ let discreteHeatMapPlotter = {
         myDataProcessor.plotLineGraph(location, measure, this.plotLineGraphHandler, color, showLegend);
     },
     plotLineGraphHandler: function (location, measure, x, y, color, showLegend) {
-        let trace ={
+        let trace = {
             x: x,
             y: y,
             name: location + "-" + measure,
@@ -736,7 +741,7 @@ let discreteHeatMapPlotter = {
                 opacity: 0.3,
                 size: 4
             },
-            line:{
+            line: {
                 width: 0.5
             },
             connectgaps: false
@@ -765,9 +770,9 @@ let discreteHeatMapPlotter = {
             },
             showlegend: true
         }
-        if( color >= 0){
+        if (color >= 0) {
             trace.line.color = plotLayout.groupColors[color];
-            trace.name = plotLayout.groupByLocation?location:measure;
+            trace.name = plotLayout.groupByLocation ? location : measure;
             trace.legendgroup = trace.name;
             trace.showlegend = showLegend;
         }
@@ -883,30 +888,30 @@ function groupDragEnded() {
     let mouseY = d3.event.sourceEvent.clientY;
     if (mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height) {
         let locations = [];
-        let measures=[];
-        if(plotLayout.groupByLocation){
+        let measures = [];
+        if (plotLayout.groupByLocation) {
             locations = [draggedGroup];
             measures = plotData.measures;
-        }else{
+        } else {
             measures = [draggedGroup];
             locations = plotData.locations;
         }
 
-        locations.forEach((location, i)=>{
-           measures.forEach(measure=>{
-               //Only set the group for the first time.
-               let showLegend = (i===0)?true:false;
-               discreteHeatMapPlotter.plotLineGraph(location, measure, plotLayout.groupColorCounter, showLegend);
-           });
+        locations.forEach((location, i) => {
+            measures.forEach(measure => {
+                //Only set the group for the first time.
+                let showLegend = (i === 0) ? true : false;
+                discreteHeatMapPlotter.plotLineGraph(location, measure, plotLayout.groupColorCounter, showLegend);
+            });
         });
         plotLayout.groupColorCounter++;
-        plotLayout.groupColorCounter = plotLayout.groupColorCounter%10;//max 10 colors
+        plotLayout.groupColorCounter = plotLayout.groupColorCounter % 10;//max 10 colors
         discreteHeatMapPlotter.clonedGroup.selectAll("*").remove();
         //If we haven't got the clear button, add it.
         if (d3.select("#clearBtn").empty()) {
             addClearButton();
         }
-    }else{
+    } else {
         let droppedY = getMinGroupY(discreteHeatMapPlotter.mouseoverGroup);
         discreteHeatMapPlotter.clonedInGraph.html(discreteHeatMapPlotter.clonedGroup.html());
         //Remove the old one
@@ -915,6 +920,24 @@ function groupDragEnded() {
         discreteHeatMapPlotter.clonedInGraph.selectAll("*").transition().duration(transitionDuration)
         // .attr("fill", "blue");
             .attr("opacity", 0.7);
+        //Alert the similarity
+        let droppedGroup = discreteHeatMapPlotter.mouseoverGroup;
+        let similarities = plotLayout.groupByLocation ? locationSimilarities : measureSimilarities;
+        let similarity = getSimilarity(similarities, draggedGroup, droppedGroup);
+        if (similarity) {
+            let detailDiv = d3.select("#detailDiv");
+            detailDiv
+                .style("opacity", 1.0).style("left", (d3.event.sourceEvent.pageX) + "px")
+                .style("top", (d3.event.sourceEvent.pageY - 28) + "px")
+                .style("display", "block")
+                .style("z-index", 10);
+            let msg = "Two group similarity is: " + similarity;
+            detailDiv.select(".content").html(msg);
+        }
+        function getSimilarity(similarities, item1, item2) {
+            let theSimilarity = similarities.filter(s => (s.item1 === item1 && s.item2 === item2) || (s.item1 === item2 && s.item2 === item1))[0];
+            return theSimilarity ? theSimilarity.value : null;
+        }
     }
 
 }

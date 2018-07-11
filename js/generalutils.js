@@ -283,7 +283,7 @@ let matrix = [
 
 function rankBySimilarity(matrix) {
     //First sort it descendingly.
-    matrix.sort((a, b) => b.value - a.value);
+    matrix.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
     let allItems = d3.set(matrix.map(d => d['item1'])).values();
     allItems = allItems.concat(d3.set(matrix.map(d => d['item2'])).values());
     allItems = d3.set(allItems).values();

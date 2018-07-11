@@ -16,7 +16,7 @@ let myDataProcessor = {
                 return d;
             });
             myDataProcessor.markOutliers();
-            myDataProcessor.filterOutliers();
+            //myDataProcessor.filterOutliers();
             myDataProcessor.filterExtremelyHighvalues(1500);
             myDataProcessor.filterOutByMeasures(myDataProcessor.getChemWithFewMeasures(150));
             myDataProcessor.addMonthIndex();

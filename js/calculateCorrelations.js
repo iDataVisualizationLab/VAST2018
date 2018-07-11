@@ -37,8 +37,8 @@ function calculateLocationCorrelations() {
                 location2Data.splice(removeIndex[c],1);
             }
 
-            let corr= Math.abs(statistics.pearsonCorcoef(location1Data, location2Data)) * (location1Data.length/(227*106));
-            locationSimilarities.push(new Similarity(location1, location2, Math.abs(corr)));
+            let corr= statistics.pearsonCorcoef(location1Data, location2Data) * (location1Data.length/(227*106));
+            locationSimilarities.push(new Similarity(location1, location2, corr));
         }
     }
 }
@@ -88,8 +88,8 @@ function calculateMeasureCorrelations() {
                 measure2Data.splice(removeIndex[c],1);
             }
             //Calculate the correlation - normalize by the number of points with data.
-            let corr= Math.abs(statistics.pearsonCorcoef(measure1Data, measure2Data)) * (measure1Data.length/(227*10));
-            measureSimilarities.push(new Similarity(measure1, measure2,Math.abs(corr)));
+            let corr= statistics.pearsonCorcoef(measure1Data, measure2Data) * (measure1Data.length/(227*10));
+            measureSimilarities.push(new Similarity(measure1, measure2, corr));
         }
     }
 }

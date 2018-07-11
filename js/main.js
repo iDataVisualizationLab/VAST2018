@@ -1,5 +1,5 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings1.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings.csv", dataHandler);
 }
 
 $(document).ready(() => {
@@ -182,7 +182,6 @@ let xOffset = 0;
 let yOffset = 0;
 
 function boxDragStarted() {
-
     let obj = d3.select(this);
     xOffset = d3.event.x - obj.node().getBoundingClientRect().x;
     yOffset = d3.event.y - obj.node().getBoundingClientRect().y;
@@ -190,7 +189,7 @@ function boxDragStarted() {
 }
 
 function boxDragged() {
-
+    d3.event.sourceEvent.stopPropagation();
     let obj = d3.select(this);
     let xCoord = d3.event.x - xOffset;
     let yCoord = d3.event.y - yOffset;
@@ -200,6 +199,7 @@ function boxDragged() {
 }
 
 function boxDragEnded() {
+    d3.event.sourceEvent.stopPropagation();
 }
 
 function changeHeight() {
@@ -236,5 +236,7 @@ function closeFloatingBox(theButton, theBox) {
         display: 'none',
         'z-index': 0
     });
-    $("#" + theButton).fadeTo(1000, 1.0);
+    if(theButton){
+        $("#" + theButton).fadeTo(1000, 1.0);
+    }
 }
