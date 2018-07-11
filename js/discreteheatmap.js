@@ -10,7 +10,8 @@ let plotData = {
     scales: null,
     data: [],
     groups: [],
-    streamInformation: []
+    streamInformation: [],
+
 };
 let plotLayout = {
     expandedBoxHeight: 6,
@@ -26,7 +27,10 @@ let plotLayout = {
     // colorScales: d3.scaleLinear().domain([0, 0.03, 0.06, 0.15, 0.3, 0.5, 0.7, 0.85, 0.94, 0.97, 1])
     //     .range(["#9dbee6", "#afcae6", "#c8dce6", "#e6e6e6", "#e6e6d8", "#e6d49c", "#e6b061", "#e6852f", "#e6531a", "#e61e1a"]).interpolate(d3.interpolateHsl),
     groupByLocation: true,
-    timeLabelHeight: 20
+    timeLabelHeight: 20,
+    groupColors: d3.schemeDark2,
+    groupColorCounter: 0,
+    linePlotLegendGroups:[],
 };
 let allCells = {};
 let allRows = {};
@@ -85,8 +89,8 @@ let discreteHeatMapPlotter = {
 
         //this.generateArcs();
         //TODO: May need to remove this to a different place.
-        // let leftPanel = graphWidth + plotLayout.measureLabelWidth;
-        let leftPanel = 0;
+        let leftPanel = graphWidth + plotLayout.measureLabelWidth;
+        // let leftPanel = 0;
         d3.select("#" + controlPanelContainer).style("left", (leftPanel+ 20) + "px").style("top", (plotLayout.timeLabelHeight + 15) + "px").style("opacity", 0);//+10 is for the default top margin
         d3.select("#" + linePlotContainer).style("left", (leftPanel+20) + "px").style("top", (plotLayout.timeLabelHeight + 120 + 15) + "px").style("opacity", 0);//120 is the height of the control panel
         d3.select("#" + mapDivContainer).style("left", (leftPanel+20) + "px").style("top", (plotLayout.timeLabelHeight + 440 + 15) + "px").style("opacity", 0);//320 is the height of the line plot div
@@ -500,8 +504,23 @@ let discreteHeatMapPlotter = {
             return;
         }
         let layout = {
-            title: '',
             annotations: [
+                {
+                    x: 0,
+                    y: 1.0,
+                    xshift: 2,
+                    yshift: -2,
+                    showarrow: false,
+                    text: group,
+                    xref: "paper",
+                    yref: "paper",
+                    font: {
+                        size: 10,
+                        color: 'white',
+                        weight: 'bold',
+
+                    },
+                },
                 {
                     x: 0,
                     y: 1.0,
@@ -510,13 +529,15 @@ let discreteHeatMapPlotter = {
                     xref: "paper",
                     yref: "paper",
                     font: {
-                        size: 10
+                        size: 10,
+                        color: 'black',
                     }
                 }],
-            titlefont: {
-                size: 8,
-                color: '#7f7f7f'
-            },
+            // title: '',
+            // titlefont: {
+            //     size: 8,
+            //     color: '#7f7f7f',
+            // },
             displayModeBar: false,
             xaxis: {
                 autorange: true,
@@ -680,24 +701,24 @@ let discreteHeatMapPlotter = {
     removeArcs: function () {
         this.arcs.selectAll("*").remove();
     },
-    plotLineGraph: function (location, measure) {
-        myDataProcessor.plotLineGraph(location, measure, this.plotLineGraphHandler);
+    plotLineGraph: function (location, measure, color, showLegend) {
+        myDataProcessor.plotLineGraph(location, measure, this.plotLineGraphHandler, color, showLegend);
     },
-    plotLineGraphHandler: function (location, measure, x, y) {
-        let data = [{
+    plotLineGraphHandler: function (location, measure, x, y, color, showLegend) {
+        let trace ={
             x: x,
             y: y,
             name: location + "-" + measure,
             mode: 'lines+markers',
-            line: {
-                width: 0.5
-            },
             marker: {
                 opacity: 0.3,
                 size: 4
             },
+            line:{
+                width: 0.5
+            },
             connectgaps: false
-        }];
+        };
         var layout = {
             title: "Line graph view",
             xaxis: {
@@ -722,6 +743,15 @@ let discreteHeatMapPlotter = {
             },
             showlegend: true
         }
+        if( color >= 0){
+            trace.line.color = plotLayout.groupColors[color];
+            trace.name = plotLayout.groupByLocation?location:measure;
+            trace.legendgroup = trace.name;
+            trace.showlegend = showLegend;
+        }
+
+        let data = [trace];
+
         Plotly.plot(linePlotDiv, data, layout);
 
     },
@@ -821,14 +851,49 @@ function groupDragged() {
 }
 
 function groupDragEnded() {
-    let droppedY = getMinGroupY(discreteHeatMapPlotter.mouseoverGroup);
-    discreteHeatMapPlotter.clonedInGraph.html(discreteHeatMapPlotter.clonedGroup.html());
-    //Remove the old one
-    discreteHeatMapPlotter.clonedGroup.selectAll("*").remove();
-    discreteHeatMapPlotter.clonedInGraph.attr("opacity", 1.0).transition().duration(transitionDuration).attr("transform", `translate(0, ${droppedY - groupY})`);
-    discreteHeatMapPlotter.clonedInGraph.selectAll("*").transition().duration(transitionDuration)
-    // .attr("fill", "blue")
-        .attr("opacity", 0.7);
+    //If it is dropped to the line plot area
+    let linePlotDivBox = d3.select("#" + linePlotDiv).node().getBoundingClientRect();
+    let x = linePlotDivBox.x;
+    let y = linePlotDivBox.y;
+    let width = linePlotDivBox.width;
+    let height = linePlotDivBox.height;
+    let mouseX = d3.event.sourceEvent.clientX;
+    let mouseY = d3.event.sourceEvent.clientY;
+    if (mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height) {
+        let locations = [];
+        let measures=[];
+        if(plotLayout.groupByLocation){
+            locations = [draggedGroup];
+            measures = plotData.measures;
+        }else{
+            measures = [draggedGroup];
+            locations = plotData.locations;
+        }
+
+        locations.forEach((location, i)=>{
+           measures.forEach(measure=>{
+               //Only set the group for the first time.
+               let showLegend = (i===0)?true:false;
+               discreteHeatMapPlotter.plotLineGraph(location, measure, plotLayout.groupColorCounter, showLegend);
+           });
+        });
+        plotLayout.groupColorCounter++;
+        plotLayout.groupColorCounter = plotLayout.groupColorCounter%10;//max 10 colors
+        discreteHeatMapPlotter.clonedGroup.selectAll("*").remove();
+        //If we haven't got the clear button, add it.
+        if (d3.select("#clearBtn").empty()) {
+            addClearButton();
+        }
+    }else{
+        let droppedY = getMinGroupY(discreteHeatMapPlotter.mouseoverGroup);
+        discreteHeatMapPlotter.clonedInGraph.html(discreteHeatMapPlotter.clonedGroup.html());
+        //Remove the old one
+        discreteHeatMapPlotter.clonedGroup.selectAll("*").remove();
+        discreteHeatMapPlotter.clonedInGraph.attr("opacity", 1.0).transition().duration(transitionDuration).attr("transform", `translate(0, ${droppedY - groupY})`);
+        discreteHeatMapPlotter.clonedInGraph.selectAll("*").transition().duration(transitionDuration)
+        // .attr("fill", "blue");
+            .attr("opacity", 0.7);
+    }
 
 }
 

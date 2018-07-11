@@ -237,12 +237,12 @@ let myDataProcessor = {
         uniqueValues.sort((a, b) => a.localeCompare(b));
         populateComboBoxHandler(uniqueValues);
     },
-    plotLineGraph: function (location, measure, handler) {
+    plotLineGraph: function (location, measure, handler, color, group) {
         let dataForLocation = this.data.filter(d => d.location === location);
         let dataForMeasure = dataForLocation.filter(d => d.measure === measure);
         let dates = this.unpack(dataForMeasure, COL_SAMPLE_DATE);
         let values = this.unpack(dataForMeasure, COL_VALUE);
-        handler(location, measure, dates, values);
+        handler(location, measure, dates, values, color, group);
     },
     drawParallelCoordinates: function (parallelCoordinateHandler) {
         //Process location
