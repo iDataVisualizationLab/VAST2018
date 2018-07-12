@@ -225,7 +225,7 @@ function openFloatingBox(theButton, theBox) {
     $("#" + theBox).animate({
         opacity: '1.0',
         display: 'block',
-        'z-index': 10
+        'z-index': 9
     });
     $("#" + theButton).fadeTo(1000, 0);
 }

@@ -911,6 +911,7 @@ function groupDragEnded() {
         //If we haven't got the clear button, add it.
         if (d3.select("#clearBtn").empty()) {
             addClearButton();
+            addToggleInfoButton();
         }
     } else {
         let droppedY = getMinGroupY(discreteHeatMapPlotter.mouseoverGroup);
@@ -935,6 +936,7 @@ function groupDragEnded() {
             let msg = "Two group similarity is: " + similarity;
             detailDiv.select(".content").html(msg);
         }
+
         function getSimilarity(similarities, item1, item2) {
             let theSimilarity = similarities.filter(s => (s.item1 === item1 && s.item2 === item2) || (s.item1 === item2 && s.item2 === item1))[0];
             return theSimilarity ? theSimilarity.value : null;
@@ -994,6 +996,7 @@ function rowDragEnded() {
     //If we haven't got the clear button, add it.
     if (d3.select("#clearBtn").empty()) {
         addClearButton();
+        addToggleInfoButton();
     }
 }
 
@@ -1004,18 +1007,39 @@ function createElementFromHTML(htmlString) {
 }
 
 function addClearButton() {
-    let htmlString = '<a id="clearBtn" rel="tooltip" class="modebar-btn" data-title="Clear" data-toggle="false" data-gravity="n"><svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">\n' +
-        ' <g>\n' +
-        '  <title>Layer 1</title>\n' +
-        '  <path stroke-width="0" id="svg_2" d="m3.776302,16.901317c0,1.1 0.9,2 2,2l8,0c1.1,0 2,-0.9 2,-2l0,-12l-12,0l0,12zm2.46,-7.12l1.41,-1.41l2.13,2.12l2.12,-2.12l1.41,1.41l-2.12,2.12l2.12,2.12l-1.41,1.41l-2.12,-2.12l-2.12,2.12l-1.41,-1.41l2.12,-2.12l-2.13,-2.12zm7.04,-7.88l-1,-1l-5,0l-1,1l-3.5,0l0,2l14,0l0,-2l-3.5,0z"/>\n' +
-        ' </g>\n' +
-        '</svg></a>';
+    let htmlString =
+        '<a id="clearBtn" rel="tooltip" class="modebar-btn" data-title="Toggle hover info" data-toggle="false" data-gravity="n">' +
+        '<svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1000 1000" enable-background="new 0 0 1000 1000" xml:space="preserve">'+
+        '<g><path d="M767,973.2H251.7c-45.7,0-83-36.4-84.5-81.7l-67.4-721c-2.5-27.9,18.1-52.5,46-55c27.6-2.3,52.5,18.1,55,46l66.5,710.4h484.1l47.7-524.3c2.5-27.9,27.8-48.2,55-45.9c27.9,2.5,48.4,27.2,45.9,55.1l-48.6,534.9C850,936.8,812.7,973.2,767,973.2z"/><path d="M939.3,214.3H60.7c-28,0-50.7-22.7-50.7-50.7c0-28,22.7-50.7,50.7-50.7h878.6c28,0,50.7,22.7,50.7,50.7C990,191.6,967.3,214.3,939.3,214.3z"/><path d="M700.2,120.7c0,43.2-35,78.3-78.3,78.3H395c-43.2,0-78.3-35-78.3-78.3v-15.7c0-43.2,35-78.3,78.3-78.3h227c43.2,0,78.3,35,78.3,78.3V120.7z"/><path d="M366.5,827c-24.3,0-44.8-18.8-46.5-43.4l-31.1-436.3c-1.8-25.7,17.5-48.1,43.3-49.9c25.6-2,48.1,17.5,49.9,43.3L413.2,777c1.8,25.7-17.5,48.1-43.3,49.9C368.8,827,367.7,827,366.5,827z"/><path d="M516.5,827c-25.8,0-46.7-20.9-46.7-46.7l0-436.3c0-25.8,20.9-46.7,46.7-46.7c25.8,0,46.7,20.9,46.7,46.7v436.3C563.2,806.1,542.2,827,516.5,827z"/><path d="M666.4,827c-1.1,0-2.3,0-3.4-0.1c-25.8-1.8-45.1-24.2-43.3-49.9l31.1-436.3c1.9-25.7,24.6-45.3,49.9-43.3c25.8,1.8,45.1,24.2,43.3,49.9l-31.1,436.3C711.1,808.2,690.6,827,666.4,827z"/></g>'+
+        '</svg>'+
+        '</a>';
     let theElm = createElementFromHTML(htmlString);
     theElm.addEventListener('click', clearChart, false);
     let downloadBtn = d3.select('[data-title="Download plot as a png"]');
     if (!downloadBtn.empty()) {
-        downloadBtn.node().parentNode.insertBefore(theElm, d3.select('[data-title="Download plot as a png"]').node());
+        downloadBtn.node().parentNode.insertBefore(theElm, downloadBtn.node());
     }
+}
+
+function addToggleInfoButton() {
+    let htmlString =
+        '<a id="clearBtn" rel="tooltip" class="modebar-btn" data-title="Toggle hover info" data-toggle="false" data-gravity="n">' +
+        '<svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1000 1000" enable-background="new 0 0 1000 1000" xml:space="preserve">' +
+        '<g><g><path d="M846.7,153.7c-191.2-191.5-501.5-191.7-693-0.4c-191.5,191.2-191.7,501.5-0.4,693c191.2,191.5,501.5,191.7,693,0.4C1037.7,655.5,1037.9,345.2,846.7,153.7z M568.4,810.9c0,7.6-6.1,13.7-13.7,13.7H445.3c-7.6,0-13.7-6.1-13.7-13.7V404.6c0-7.6,6.1-13.7,13.7-13.7h109.5c7.6,0,13.7,6.1,13.7,13.7V810.9z M500,334.1c-43.8,0-79.4-35.6-79.4-79.4c0-43.8,35.6-79.4,79.4-79.4c43.8,0,79.4,35.6,79.4,79.4C579.4,298.5,543.8,334.1,500,334.1z"/></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></g>' +
+        '</svg>'+
+        '</a>';
+    let theElm = createElementFromHTML(htmlString);
+    //Set the opacity = 1 by default. Because by default there is no opacity attribute so we can't change it
+    d3.select("g.hoverlayer").attr("opacity", 1);
+    theElm.addEventListener('click', () => {
+        let opacity = (+d3.select("g.hoverlayer").attr("opacity")) === 1 ? 0 : 1;
+        d3.select("g.hoverlayer").attr("opacity", opacity);
+    }, false);
+    let downloadBtn = d3.select('[data-title="Download plot as a png"]');
+    if (!downloadBtn.empty()) {
+        downloadBtn.node().parentNode.insertBefore(theElm, downloadBtn.node());
+    }
+
 }
 
 function clearChart() {
