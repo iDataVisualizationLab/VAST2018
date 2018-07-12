@@ -17,8 +17,9 @@ let myDataProcessor = {
             });
             myDataProcessor.markOutliers();
             //myDataProcessor.filterOutliers();
-            myDataProcessor.filterExtremelyHighvalues(1500);
-            myDataProcessor.filterOutByMeasures(myDataProcessor.getChemWithFewMeasures(150));
+            //TODO: Add this line when we use complete data.
+            //myDataProcessor.filterExtremelyHighvalues(1500);
+            //myDataProcessor.filterOutByMeasures(myDataProcessor.getChemWithFewMeasures(150));
             myDataProcessor.addMonthIndex();
             dataHandler();
 
@@ -55,7 +56,9 @@ let myDataProcessor = {
             nested['$' + key] = {
                 data: nested['$' + key],
                 //TODO: Change these to selectable options.
-                average: d3.mean(nested['$' + key].map(d => d[COL_VALUE])),
+                //Do the mean but filter out the outliers first
+
+                average: d3.mean(nested['$' + key].filter(d=>d[COL_IS_OUTLIER]===false).map(d => d[COL_VALUE])),
                 // average: d3.max(nested['$' + key].map(d => d[COL_VALUE])),
                 // average: d3.min(nested['$' + key].map(d => d[COL_VALUE])),
                 // average: d3.max(nested['$' + key].map(d => d[COL_VALUE]))-d3.min(nested['$' + key].map(d => d[COL_VALUE])),
@@ -150,7 +153,7 @@ let myDataProcessor = {
         let scales = this.getNestedScalesWithOutliers();
         let nested = d3.nest().key(d => d[COL_MEASURE] + "_" + d[COL_MONTH_INDEX]).map(this.data);
         let results = {};
-        let months = this.getMonthNumber()
+        let months = this.getMonthNumber();
         this.getAllMeasures().forEach(measure => {
             let measureData = [];
             let measureScale = scales["$" + measure];
@@ -205,7 +208,7 @@ let myDataProcessor = {
         //Scales by the average of the month.
         var scales = {};
         //Filter the outliers while calculating the range.
-        let filteredData = this.data.filter(d => !d[COL_IS_OUTLIER]);
+        let filteredData = this.data.filter(d => d[COL_IS_OUTLIER]===false);
         let averages = this.getNestedByMeasureLocationMonthFromData(filteredData);
         let measures = this.getAllMeasures();
         measures.forEach(measure => {
