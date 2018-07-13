@@ -17,6 +17,7 @@ function calculateLocationCorrelations() {
         allLocationData["$"+location] = singleLocationData;
     });
     //Now for each pair of locations we will remove the pair if the data is not available.
+
     for (let i = 0; i < locations.length-1; i++) {
         let location1 = locations[i];
         for (let j = i+1; j < locations.length; j++) {
@@ -36,8 +37,8 @@ function calculateLocationCorrelations() {
                 location1Data.splice(removeIndex[c],1);
                 location2Data.splice(removeIndex[c],1);
             }
-
-            let corr= statistics.pearsonCorcoef(location1Data, location2Data) * (location1Data.length/(227*106));
+            let normalizedFactor = location1Data.length/(plotData.months.length*plotData.measures.length);
+            let corr= statistics.pearsonCorcoef(location1Data, location2Data) * (normalizedFactor);
             locationSimilarities.push(new Similarity(location1, location2, corr));
         }
     }
@@ -88,7 +89,8 @@ function calculateMeasureCorrelations() {
                 measure2Data.splice(removeIndex[c],1);
             }
             //Calculate the correlation - normalize by the number of points with data.
-            let corr= statistics.pearsonCorcoef(measure1Data, measure2Data) * (measure1Data.length/(227*10));
+            let normalizedFactor = measure1Data.length/(plotData.months.length*plotData.locations.length);
+            let corr= statistics.pearsonCorcoef(measure1Data, measure2Data) * (normalizedFactor);
             measureSimilarities.push(new Similarity(measure1, measure2, corr));
         }
     }

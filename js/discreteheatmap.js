@@ -22,7 +22,7 @@ let plotLayout = {
     boxHeight: 6,
     minBoxHeight: 1,
     separatorHeight: 1,
-    measureLabelWidth: 160,//put this as 400 to have clearer display of the signature.
+    measureLabelWidth: 400,//put this as 400 to have clearer display of the signature.
     title: null,
     pinSize: {width: 28, height: 38},
     colorScales: d3.scaleLinear().domain([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
@@ -33,7 +33,6 @@ let plotLayout = {
     timeLabelHeight: 20,
     groupColors: d3.schemeDark2,
     groupColorCounter: 0,
-    linePlotLegendGroups: [],
 };
 let allCells = {};
 let allRows = {};
@@ -897,11 +896,18 @@ function groupDragEnded() {
             measures = [draggedGroup];
             locations = plotData.locations;
         }
-
+        let legendShown = false;
         locations.forEach((location, i) => {
             measures.forEach(measure => {
                 //Only set the group for the first time.
-                let showLegend = (i === 0) ? true : false;
+                let showLegend = false;
+                if(!legendShown){
+                    let hasData = myDataProcessor.data.filter(d => d.location === location && d.measure===measure).length > 0;
+                    if(hasData){
+                        showLegend = true;
+                        legendShown = true;
+                    }
+                }
                 discreteHeatMapPlotter.plotLineGraph(location, measure, plotLayout.groupColorCounter, showLegend);
             });
         });
