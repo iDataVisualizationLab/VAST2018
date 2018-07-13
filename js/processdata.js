@@ -4,8 +4,8 @@ const COL_MEASURE = "measure";
 const COL_VALUE = "value";
 const COL_LOCATION = "location";
 const COL_IS_OUTLIER = "isOutlier";
-
 let myDataProcessor = {
+    samplingRatio: {},
     data: null, //used to store the read data.
     readData: function (fileName, dataHandler) {
         d3.csv(fileName, function (error, rawData) {
@@ -21,11 +21,56 @@ let myDataProcessor = {
             //myDataProcessor.filterExtremelyHighvalues(1500);
             //myDataProcessor.filterOutByMeasures(myDataProcessor.getChemWithFewMeasures(150));
             myDataProcessor.addMonthIndex();
+            myDataProcessor.generateSamplingRatios();
+            myDataProcessor.generateSamplingRatios();
             dataHandler();
-
         });
     },
+    countMissingDataPerMonth: function(){
+        let locations = this.getAllLocations();
+        let measures = this.getAllMeasures();
+        let months = this.getMonthNumber();
+        let missingCounter = [];
+        let data = this.getNestedByMeasureLocationMonth();
+        for (let i = 0; i < 12; i++) {
+            missingCounter[i] = 0;
+        }
+        locations.forEach((location)=>{
+            measures.forEach((measure)=>{
+                for (let i = 0; i < months; i++) {
+                    if(!data['$'+measure+'_'+location+"_"+i]){
+                        let m = i%12;
+                        missingCounter[m] += 1;
+                    }
+                }
+            })
+        });
+        return missingCounter;
+    },
+    generateSamplingRatiosForGroup: function(byLocation){
+        let data = this.getNestedByMeasureLocationMonth();
+        let keys = d3.keys(data);
+        let groups = byLocation ? this.getAllLocations(): this.getAllMeasures();
 
+        groups.forEach(group=>{
+            let totalPoints = 0;
+            let totalSamples = 0;
+            keys.forEach(key=>{
+                if(key.indexOf(group) >=0){
+                    totalPoints+=1;
+                    totalSamples += data[key].data.length;
+                }
+            });
+            myDataProcessor.samplingRatio["$"+group] = {totalPoints: totalPoints, totalSamples: totalSamples, ratio: totalSamples/totalPoints}
+        });
+    },
+    generateSamplingRatios: function(){
+        this.generateSamplingRatiosForGroup(true);
+        this.generateSamplingRatiosForGroup(false);
+    },
+    calculateSamplingRatioForMeasures: function(){
+        return this.calculateSamplingRatioForGroup(false);
+    },
     getNestedByMeasureLocationMonthFromData: function (data) {
         //Nest by Measure + Location + Month Index
         let nested = d3.nest().key(d => d[COL_MEASURE] + "_" + d[COL_LOCATION] + "_" + d[COL_MONTH_INDEX]).sortKeys(d3.ascending).map(data);
@@ -57,7 +102,6 @@ let myDataProcessor = {
                 data: nested['$' + key],
                 //TODO: Change these to selectable options.
                 //Do the mean but filter out the outliers first
-
                 average: d3.mean(nested['$' + key].filter(d=>d[COL_IS_OUTLIER]===false).map(d => d[COL_VALUE])),
                 // average: d3.max(nested['$' + key].map(d => d[COL_VALUE])),
                 // average: d3.min(nested['$' + key].map(d => d[COL_VALUE])),

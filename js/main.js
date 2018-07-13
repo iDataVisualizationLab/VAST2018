@@ -1,5 +1,5 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings2.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings2002.csv", dataHandler);
 }
 
 $(document).ready(() => {
@@ -111,6 +111,12 @@ function changeGroupOrder() {
     if (measureOrder === "similarity") {
         plotData.measures = rankedMeasures.travel();
     }
+    if(measureOrder === "samplingratio"){
+        plotData.measures = plotData.measures.sort((a, b) => {
+            return myDataProcessor.samplingRatio["$"+a].ratio - myDataProcessor.samplingRatio["$"+b].ratio;
+        });
+    }
+    //Location order
     if (locationOrder === "alphabetical") {
         plotData.locations = plotData.locations.sort((a, b) => a.localeCompare(b));
     }
@@ -123,6 +129,12 @@ function changeGroupOrder() {
     if (locationOrder === "streamanddistance") {
         plotData.locations = streamAndDistanceLocationData.map(d => d.name);
     }
+    if(locationOrder === "samplingratio"){
+        plotData.locations = plotData.locations.sort((a, b) => {
+            return myDataProcessor.samplingRatio["$"+a].ratio - myDataProcessor.samplingRatio["$"+b].ratio;
+        });
+    }
+    //Group order
     if (group === 'location') {
         plotLayout.groupByLocation = true;
         plotData.groups = plotData.locations;
@@ -131,6 +143,7 @@ function changeGroupOrder() {
         plotLayout.groupByLocation = false;
         plotData.groups = plotData.measures;
     }
+
 
     discreteHeatMapPlotter.calculateRowPositions();
     discreteHeatMapPlotter.setRowPositions();

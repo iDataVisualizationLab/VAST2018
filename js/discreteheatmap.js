@@ -530,6 +530,8 @@ let discreteHeatMapPlotter = {
             overview.attr("xlink:href", existingImage);
             return;
         }
+        let groupSamplingRatio = myDataProcessor.samplingRatio["$"+group];
+        let ratioStr = "(" +(Math.round(groupSamplingRatio.ratio*100)/100)+ " = "+ groupSamplingRatio.totalSamples+"/"+ groupSamplingRatio.totalPoints+ ")";
         let layout = {
             annotations: [
                 {
@@ -538,7 +540,7 @@ let discreteHeatMapPlotter = {
                     xshift: 2,
                     yshift: -2,
                     showarrow: false,
-                    text: group,
+                    text: group + ratioStr,
                     xref: "paper",
                     yref: "paper",
                     font: {
@@ -552,7 +554,7 @@ let discreteHeatMapPlotter = {
                     x: 0,
                     y: 1.0,
                     showarrow: false,
-                    text: group,
+                    text: group + ratioStr,
                     xref: "paper",
                     yref: "paper",
                     font: {
