@@ -547,7 +547,6 @@ let discreteHeatMapPlotter = {
                         size: 10,
                         color: 'white',
                         weight: 'bold',
-
                     },
                 },
                 {
