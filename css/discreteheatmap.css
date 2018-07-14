@@ -44,11 +44,11 @@ div.detailView {
 }
 .floatingBox {
     position: fixed;
-    box-shadow: 5px 5px 5px #444;
     top: 10px;
     padding: 5px;
     box-sizing: content-box;
     font-family: Arial;
+    box-shadow: 5px 5px 5px #444;
     background-image: -webkit-linear-gradient(left, #fefefe, #eeeeee);
     border: 1px solid #ccc;
     border-radius: 9px;
