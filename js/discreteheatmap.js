@@ -301,12 +301,6 @@ let discreteHeatMapPlotter = {
                         x: datum.x,
                         y: datum.y + rowY
                     };
-                    if (d.x > mouseCoords.x + fishEyeRadius * 2
-                        || d.x < mouseCoords.x - fishEyeRadius * 2
-                        || d.y < mouseCoords.y - fishEyeRadius * 2
-                        || d.y > mouseCoords.y + fishEyeRadius * 2) {
-                        continue;
-                    }
                     let fisheyed = fisheye(d);
                     if (cell.node().nodeName === 'rect') {
                         cell.attr("x", fisheyed.x)

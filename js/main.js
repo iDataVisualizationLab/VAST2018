@@ -1,5 +1,5 @@
 function loadData() {
-    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings2002.csv", dataHandler);
+    myDataProcessor.readData("mc2/Boonsong Lekagul waterways readings2005.csv", dataHandler);
 }
 
 $(document).ready(() => {
